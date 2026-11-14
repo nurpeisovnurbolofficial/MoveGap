@@ -168,7 +168,7 @@ export class CloudPlanCoordinator {
       const result = await this.client.load(access);
       if (result.ok && result.value.planId === access.planId) {
         this.staged = { access, record: result.value };
-        this.cloud = { kind: 'dirty' }; // UI must ask to replace local data.
+        this.cloud = { kind: 'conflict', currentRevision: result.value.revision }; // Explicit version choice.
       } else this.cloud = { kind: 'error', error: result.ok
         ? { code: 'INVALID_RESPONSE', outcome: 'not-sent' } : result.error };
     } finally { this.busy = false; this.changed(); }
@@ -189,7 +189,7 @@ export class CloudPlanCoordinator {
       }
       if (this.draft.currentToken() !== localToken) {
         this.staged = { access, record: result.value };
-        this.cloud = { kind: 'dirty' };
+        this.cloud = { kind: 'conflict', currentRevision: result.value.revision };
         this.problem('Local edits changed while loading. Review both versions again before replacing.');
         return;
       }

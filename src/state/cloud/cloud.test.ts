@@ -159,6 +159,7 @@ describe('cloud transport and local binding', () => {
     await coordinator.open(access);
     expect(draft.adapter.replaceWith).not.toHaveBeenCalled();
     expect(readCloudLocal(local)).toBeNull();
+    expect(coordinator.panelState.cloud.kind).toBe('conflict');
     await coordinator.loadServerVersion();
     expect(draft.adapter.replaceWith).toHaveBeenCalledOnce();
     expect(readCloudLocal(local)?.binding?.access).toEqual(access);
