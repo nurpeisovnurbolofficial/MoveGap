@@ -3,7 +3,7 @@ import type { ComparisonResult, MoveInput, PlanResult } from '../../domain/types
 import { money, shortDate } from '../../shared/format';
 import { addDays } from '../../domain/engine';
 import { calendarDays, delayableIncome, paymentRequest } from './explorationData';
-import { highlights, isEligible, unconfirmedItems } from './planInsights';
+import { isEligible, unconfirmedItems } from './planInsights';
 import './PlanningTools.css';
 
 const outcome = (plan: PlanResult) => plan.needsConfirmation ? (plan.meetsReserve ? 'Needs confirmation' : 'Does not fit · needs confirmation')
@@ -30,19 +30,6 @@ export function ScenarioControls({ input, original, current, eventId, days, acti
           return baseline && <li key={plan.id}><strong>Plan {index + 1} · Move {shortDate(plan.moveDate)}</strong><span>Originally: {outcome(baseline)} · lowest cash {money(baseline.minBalanceCents)}</span><span>With delay: {outcome(plan)} · lowest cash {money(plan.minBalanceCents)}</span></li>;
         })}</ul></details><button className="button secondary" onClick={() => onActive(false)}>Return to original dates</button></div>}
     </> : <p>No future confirmed income to delay. Add it in Move details first. Income already received is not changed.</p>}
-  </section>;
-}
-
-export function OptionMatrix({ input, result, focusedId, onSelect }: { input: MoveInput; result: ComparisonResult; focusedId: string; onSelect: (id: string) => void }) {
-  const best = highlights(result).bestFitId;
-  return <section className="compare-matrix panel" aria-labelledby="matrix-title"><h2 id="matrix-title">Housing × moving options</h2><p className="compare-help">Each combination is a plan. Select one to see its payments and calendar. Amounts are the lowest cash balance over 60 days.</p>
-    <div className="matrix-scroll" tabIndex={0} role="region" aria-label="Housing and moving combinations. Scroll sideways on a small screen."><table><caption className="visually-hidden">Lowest cash and status for each housing and moving combination</caption><thead><tr><th scope="col">Housing / moving</th>{input.movingOptions.map(moving => <th key={moving.id} scope="col">{moving.label}<small>Move {shortDate(moving.moveDate)}</small></th>)}</tr></thead>
-      <tbody>{input.housingOptions.map(housing => <tr key={housing.id}><th scope="row">{housing.label}<small>Home from {shortDate(housing.availableFrom)}</small></th>{input.movingOptions.map(moving => {
-        const plan = result.plans.find(p => p.housingId === housing.id && p.movingId === moving.id);
-        const rejected = result.rejected.find(p => p.housingId === housing.id && p.movingId === moving.id);
-        return <td key={moving.id}>{plan ? <button className={`matrix-cell ${plan.id === best ? 'matrix-best' : ''}`} aria-pressed={plan.id === focusedId} aria-controls="compare-detail" aria-label={`${housing.label}, ${moving.label}: lowest cash ${money(plan.minBalanceCents)}, ${outcome(plan)}. Show details.`} onClick={() => onSelect(plan.id)}><small>Plan {result.plans.indexOf(plan) + 1}{plan.id === best ? ' · Best fit' : ''}</small><strong>{money(plan.minBalanceCents)}</strong><span>{outcome(plan)}</span></button> : <div className="matrix-unavailable"><strong>Not available</strong><span>{rejected?.reason ?? 'These options cannot be combined.'}</span></div>}</td>;
-      })}</tr>)}</tbody></table></div>
-    <p className="matrix-mobile-hint">Scroll sideways to compare every moving option.</p>
   </section>;
 }
 

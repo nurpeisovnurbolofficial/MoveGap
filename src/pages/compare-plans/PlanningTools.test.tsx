@@ -1,8 +1,8 @@
-﻿import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createExample } from '../../domain/example';
 import { calculatePlans } from '../../domain/engine';
-import { CashCalendar, OptionMatrix, ScenarioControls, PlanRecovery } from './PlanningTools';
+import { CashCalendar, ScenarioControls, PlanRecovery } from './PlanningTools';
 
 const noop = () => {};
 
@@ -16,19 +16,6 @@ describe('Comparison exploration UI', () => {
     expect(html).toContain('Days with a cash shortfall</dt><dd>3</dd>');
     expect(html).toContain('Dec 1 · Short by $1,150');
     expect(html).toContain('Old rent'); expect(html).toContain('New rent');
-  });
-  it('shows incompatible matrix pairs as explanations, never as selectable plans', () => {
-    const input = createExample(); const result = calculatePlans(input);
-    const html = renderToStaticMarkup(<OptionMatrix input={input} result={result} focusedId={result.plans[2].id} onSelect={noop}/>);
-    expect((html.match(/<button/g) ?? []).length).toBe(3);
-    expect(html).toContain('Not available'); expect(html).toContain('New home is not available on this move date.');
-    expect(html).toContain('Plan 3 · Best fit');
-  });
-  it('does not claim a best fit for unconfirmed plans', () => {
-    const input = createExample(); input.housingOptions.forEach(h => { h.confirmation = 'proposed'; });
-    const result = calculatePlans(input);
-    const html = renderToStaticMarkup(<OptionMatrix input={input} result={result} focusedId={result.plans[0].id} onSelect={noop}/>);
-    expect(html).not.toContain('matrix-best'); expect(html).toContain('Needs confirmation');
   });
   it('explains why the income-delay control is unavailable without a future confirmed income', () => {
     const input = createExample(); input.commonEvents = input.commonEvents.filter(e => e.kind !== 'income');

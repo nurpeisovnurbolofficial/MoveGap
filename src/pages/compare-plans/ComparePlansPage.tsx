@@ -10,7 +10,7 @@ import {
 import './ComparePlansPage.css';
 import { calculatePlans } from '../../domain/engine';
 import { delayIncome, delayableIncome } from './explorationData';
-import { CashCalendar, OptionMatrix, PlanRecovery, ScenarioControls } from './PlanningTools';
+import { CashCalendar, PlanRecovery, ScenarioControls } from './PlanningTools';
 
 const statusText: Record<MoneyStatus, string> = { fits: 'Keeps your reserve', reserve: 'Uses your reserve', short: 'Not enough cash' };
 const statusBadge: Record<MoneyStatus, string> = { fits: 'green', reserve: 'red', short: 'red' };
@@ -82,7 +82,6 @@ export function ComparePlansPage({ input: originalInput, result: originalResult,
     {heading}
     <ScenarioControls input={originalInput} original={originalResult} current={result} eventId={selectedIncomeId} days={delayDays} active={scenarioActive} onEvent={setIncomeId} onDays={setDelayDays} onActive={setScenarioOn}/>
     <DecisionSummary result={result} input={input} summary={summary} number={number} currentPlanId={currentPlanId} onChoose={choosePlan} onBack={onBack} onShowCard={showCard} previewOnly={scenarioActive}/>
-    <OptionMatrix input={input} result={result} focusedId={focused.id} onSelect={showDetail}/>
 
     <div className="comparison-grid">{result.plans.map(plan => <PlanCard key={plan.id} plan={plan} number={number(plan.id)} input={input}
       badges={summary.bestFitId === plan.id ? ['Best fit'] : summary.items.filter(item => item.winnerIds.includes(plan.id)).map(item => item.winnerIds.length > 1 ? `${item.label} · tie` : item.label)}
