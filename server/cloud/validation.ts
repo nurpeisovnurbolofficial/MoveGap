@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { calculatePlans } from '../../src/domain/engine';
+import { calculatePlans } from '../../src/domain/engine.js';
 import type { CloudPlanDocument, CloudPlanOperation, CloudPlanValidationIssue } from '../../src/contracts/cloudPlan';
-import { CloudError } from './errors';
+import { CloudError } from './errors.js';
 
 export const uuid = z.uuid();
 export const secret = z.string().regex(/^[a-f0-9]{64}$/);

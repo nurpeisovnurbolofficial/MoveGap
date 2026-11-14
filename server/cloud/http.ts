@@ -1,10 +1,10 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { CLOUD_PLAN_MAX_BODY_BYTES } from '../../src/contracts/cloudPlan';
+import { CLOUD_PLAN_MAX_BODY_BYTES } from '../../src/contracts/cloudPlan.js';
 import type { CloudPlanApiResult } from '../../src/contracts/cloudPlan';
-import { CloudError, notFound } from './errors';
-import { productionDatabase } from './database';
-import { CloudPlanService } from './service';
-import { parseOperation, secret, uuid } from './validation';
+import { CloudError, notFound } from './errors.js';
+import { productionDatabase } from './database.js';
+import { CloudPlanService } from './service.js';
+import { parseOperation, secret, uuid } from './validation.js';
 
 const responseHeaders = { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff' };
 function respond(value: CloudPlanApiResult<unknown>, status = 200): Response {

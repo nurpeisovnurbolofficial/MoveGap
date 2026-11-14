@@ -1,9 +1,9 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { CloudPlanDocument, CloudPlanMetadata, CloudPlanRecord, CloudPlanDeleted, CloudPlanOperation,
   CreateCloudPlanRequest, UpdateCloudPlanRequest, CloudPlanMutationRequest } from '../../src/contracts/cloudPlan';
-import { CLOUD_PLAN_RETENTION_DAYS } from '../../src/contracts/cloudPlan';
+import { CLOUD_PLAN_RETENTION_DAYS } from '../../src/contracts/cloudPlan.js';
 import type { Database, SqlClient } from './database';
-import { CloudError, notFound } from './errors';
+import { CloudError, notFound } from './errors.js';
 
 const DAY = 86400000;
 export const hash = (value: string) => createHash('sha256').update(value).digest('hex');
