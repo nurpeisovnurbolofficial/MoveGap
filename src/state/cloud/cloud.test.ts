@@ -125,6 +125,18 @@ describe('cloud transport and local binding', () => {
     expect(coordinator.panelState.cloud.kind).toBe('dirty');
   });
 
+  it('does not mark equivalent documents dirty due to key order or absent optional fields', async () => {
+    const standard = cloudPlanDocumentExample();
+    standard.input.commonEvents[0].actual = undefined;
+    const reordered: CloudPlanDocument = { selectedId: standard.selectedId, input: standard.input, schemaVersion: 1 };
+    const local = storage(); const binding = new CloudLocalStore(local, locks()); const draft = bridge(reordered);
+    const client = { create: vi.fn(async () => ({ ok: true as const, value: record() })) } as unknown as CloudPlanClient;
+    const coordinator = new CloudPlanCoordinator(client, binding, draft.adapter, () => {}, true);
+    await coordinator.save();
+    expect(coordinator.panelState.cloud.kind).toBe('saved');
+    expect(coordinator.panelState.hasUnsentChanges).toBe(false);
+  });
+
   it('keeps local data on conflict and never retries a stale revision automatically', async () => {
     const local = storage(); const binding = new CloudLocalStore(local, locks()); const draft = bridge();
     const initial = record();

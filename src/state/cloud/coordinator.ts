@@ -15,8 +15,17 @@ export interface LocalDraftBridge {
   localStatus(): LocalPlanSaveStatus;
 }
 
+const canonical = (value: unknown): string => {
+  if (Array.isArray(value)) return `[${value.map(item => item === undefined ? 'null' : canonical(item)).join(',')}]`;
+  if (value !== null && typeof value === 'object') {
+    const data = value as Record<string, unknown>;
+    return `{${Object.keys(data).filter(key => data[key] !== undefined).sort()
+      .map(key => `${JSON.stringify(key)}:${canonical(data[key])}`).join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
+};
 const same = (a: CloudPlanDocument | null, b: CloudPlanDocument | null) =>
-  a !== null && b !== null && JSON.stringify(a) === JSON.stringify(b);
+  a !== null && b !== null && canonical(a) === canonical(b);
 const metadata = (record: CloudPlanRecord): CloudPlanMetadata => ({
   planId: record.planId, revision: record.revision, savedAt: record.savedAt, expiresAt: record.expiresAt,
 });
@@ -114,7 +123,7 @@ export class CloudPlanCoordinator {
         const result = await this.client.remove(binding.access, { requestId: pending.requestId,
           expectedRevision: pending.expectedRevision! });
         if (result.ok && result.value.planId === binding.access.planId && result.value.revision === pending.expectedRevision! + 1) {
-          await this.store.write(null, null); this.cloud = { kind: 'local-only' }; this.revealed = false; this.localProblem = null;
+          await this.store.write(null, null); this.cloud = { kind: 'local-only' }; this.revealed = false; this.localProblem = null; this.staged = null;
         } else await this.finishError(result.ok ? { code: 'INVALID_RESPONSE', outcome: 'unknown' } : result.error, binding);
       } else if (pending.operation === 'rotate-key' && binding) {
         const result = await this.client.rotateKey(binding.access, pending.secret!, { requestId: pending.requestId,
@@ -163,6 +172,7 @@ export class CloudPlanCoordinator {
   async open(access: CloudPlanAccess): Promise<void> {
     if (!this.enabled || this.busy || this.store.state?.pending) return;
     if (!await this.protectDraft()) { this.problem('Your local draft could not be protected before opening another plan.'); return; }
+    this.staged = null;
     this.busy = true; this.cloud = { kind: 'loading' }; this.changed();
     try {
       const result = await this.client.load(access);
@@ -210,7 +220,7 @@ export class CloudPlanCoordinator {
     try {
       this.store.archiveCurrent();
       await this.store.write(null, null);
-      this.cloud = { kind: 'local-only' };
+      this.cloud = { kind: 'local-only' }; this.staged = null;
       await this.save();
     } catch { this.problem('Could not preserve the previous private link.'); }
   }
