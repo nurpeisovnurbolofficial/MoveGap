@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from 'react';
 import type { ReactNode } from 'react';
+import { useDraftField } from '../state/WorkspaceContext';
 
 type IconName = 'arrow' | 'back' | 'wallet' | 'home' | 'chart' | 'calendar' | 'check' | 'lock' | 'plus' | 'close' | 'info' | 'truck' | 'refresh' | 'save' | 'chevron';
 const paths: Record<IconName, ReactNode> = {
@@ -22,9 +23,10 @@ const paths: Record<IconName, ReactNode> = {
 export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
-export function MoneyField({ label, value, onChange, hint, error, onBlur }: { label: string; value: number; onChange: (v: number) => void; hint?: string; error?: string; onBlur?: () => void }) {
+export function MoneyField({ label, value, onChange, hint, error, onBlur, draftKey = '' }: { label: string; value: number; onChange: (v: number) => void; hint?: string; error?: string; onBlur?: () => void; draftKey?: string }) {
   const id = useId();
-  return <div className="field"><label htmlFor={id}>{label}</label><div className="money-input"><span aria-hidden="true">$</span><input id={id} type="number" inputMode="decimal" min="0" max="10000000" step="0.01" value={Number.isFinite(value) ? value / 100 : ''} onChange={e => onChange(e.target.value === '' ? NaN : Math.round(Number(e.target.value) * 100))} onBlur={onBlur} aria-invalid={Boolean(error)} aria-describedby={[hint ? `${id}-hint` : '', error ? `${id}-error` : ''].filter(Boolean).join(' ') || undefined}/></div>{hint && <span id={`${id}-hint`} className="field-hint">{hint}</span>}{error && <span id={`${id}-error`} className="field-hint negative">{error}</span>}</div>;
+  const [raw, setRaw] = useDraftField(draftKey, Number.isFinite(value) ? String(value / 100) : '');
+  return <div className="field"><label htmlFor={id}>{label}</label><div className="money-input"><span aria-hidden="true">$</span><input id={id} type="text" inputMode="decimal" maxLength={24} value={raw} onChange={e => { const text = e.target.value; setRaw(text); onChange(/^\d+(?:\.\d{0,2})?$/.test(text) ? Math.round(Number(text) * 100) : NaN); }} onBlur={onBlur} aria-invalid={Boolean(error)} aria-describedby={[hint ? `${id}-hint` : '', error ? `${id}-error` : ''].filter(Boolean).join(' ') || undefined}/></div>{hint && <span id={`${id}-hint`} className="field-hint">{hint}</span>}{error && <span id={`${id}-error`} className="field-hint negative">{error}</span>}</div>;
 }
 export function DateField({ label, value, onChange, error, onBlur }: { label: string; value: string; onChange: (v: string) => void; error?: string; onBlur?: () => void }) {
   const id = useId();
