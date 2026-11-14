@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { cloudPlanDocumentExample, cloudPlanWireExamples } from '../../contracts/cloudPlan.examples';
 import type { CloudPlanClient, CloudPlanDocument, CloudPlanRecord } from '../../contracts/cloudPlan';
 import { CloudPlanCoordinator, type LocalDraftBridge } from './coordinator';
-import { CLOUD_LOCAL_KEY, CloudLocalStore, generateCloudSecret, parsePrivateLink, privateLink, readCloudLocal } from './local';
+import { CLOUD_LOCAL_KEY, CloudLocalStore, consumeRestoreFragment, generateCloudSecret, parsePrivateLink, privateLink, readCloudLocal } from './local';
 import { HttpCloudPlanClient } from './transport';
 
 const id = '00000000-0000-4000-8000-000000000099';
@@ -56,6 +56,11 @@ describe('cloud transport and local binding', () => {
     const access = { planId: id, secret: generateCloudSecret() };
     expect(parsePrivateLink(privateLink(access, 'https://movegap.example/'), 'https://movegap.example/')).toEqual(access);
     expect(parsePrivateLink(privateLink(access, 'https://movegap.example/'), 'https://other.example/')).toBeNull();
+    const replaceState = vi.fn();
+    expect(consumeRestoreFragment({ href: 'https://movegap.example/#/restore/bad/key',
+      origin: 'https://movegap.example', pathname: '/', search: '', hash: '#/restore/bad/key' } as Location,
+    { state: null, replaceState } as unknown as History)).toBeNull();
+    expect(replaceState).toHaveBeenCalledWith(null, '', '/#/overview');
   });
 
   it('uses revision checks and the new-key header for every mutation', async () => {

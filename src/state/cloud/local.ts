@@ -54,7 +54,8 @@ export function parsePrivateLink(link: string, origin: string = location.href): 
 /** Capture only our fragment, then remove the secret from browser history before any load. */
 export function consumeRestoreFragment(browserLocation: Location = location, browserHistory: History = history): CloudPlanAccess | null {
   const access = parsePrivateLink(browserLocation.href, browserLocation.origin + browserLocation.pathname);
-  if (access) browserHistory.replaceState(browserHistory.state, '', `${browserLocation.pathname}${browserLocation.search}#/overview`);
+  if (browserLocation.hash.startsWith('#/restore/'))
+    browserHistory.replaceState(browserHistory.state, '', `${browserLocation.pathname}${browserLocation.search}#/overview`);
   return access;
 }
 
