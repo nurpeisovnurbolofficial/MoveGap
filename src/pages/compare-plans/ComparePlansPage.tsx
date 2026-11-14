@@ -1,4 +1,4 @@
-﻿import { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { ComparisonResult, MoveInput, PlanResult } from '../../domain/types';
 import { CashChart } from '../../components/CashChart';
 import { Icon, Panel } from '../../shared/ui';
@@ -49,7 +49,7 @@ export function ComparePlansPage({ input, result, onChoose, onBack }: { input: M
   }
 
   return <div className="compare-plans-page">
-    <div className="page-heading"><span className="eyebrow">02 / COMPARE PLANS</span><h1>Compare your moving plans.</h1><p>See which dates work with the money you have.</p></div>
+    <div className="page-heading"><h1>Compare your moving options.</h1><p>See which dates work with the money you have.</p></div>
     {result.errors.length > 0 ? <div className="empty-state" role="alert"><h2>Fix your information to compare plans.</h2><ul className="compare-errors">{result.errors.map(error => <li key={error}>{error}</li>)}</ul><button className="button primary" onClick={onBack}>Edit your move<Icon name="back" size={17}/></button></div>
       : !focused ? <div className="empty-state"><Icon name="calendar" size={36}/><h2>These dates don’t work together.</h2><p>No housing and moving options can be combined. Check when the home is available and your latest moving date.</p><button className="button primary" onClick={onBack}>Edit your move<Icon name="back" size={17}/></button></div> : <>
         <div className={`comparison-insight ${eligible ? '' : 'warning'}`}>

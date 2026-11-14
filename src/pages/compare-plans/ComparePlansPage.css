@@ -43,7 +43,7 @@
 .compare-plans-page .compare-card-actions .button { min-height:48px; font-size:14px; }
 .compare-plans-page .preview-button { font-size:13px; min-height:44px; margin-bottom:0; }
 .compare-plans-page .compare-cost-note { color:var(--p-muted); font-size:13px; line-height:1.65; margin:0 0 24px; }
-.compare-plans-page .compare-chart-section { scroll-margin-top:20px; border-radius:8px; }
+.compare-plans-page .compare-chart-section { scroll-margin-top:180px; border-radius:8px; }
 .compare-plans-page .compare-chart-help { color:var(--p-muted); font-size:13px; line-height:1.65; margin-top:12px; }
 .compare-plans-page .compare-chart-scroll { overflow-x:auto; }
 .compare-plans-page .compare-scroll-hint { display:none; }
