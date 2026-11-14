@@ -1,0 +1,22 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+.agents/
+.codex-attachments/
+tmp/
+.DS_Store
+*.log
+*.tsbuildinfo
+.vercel/
+.netlify/
+artifacts/
+.pnpm-store/
+.taste-skill/
+
+# Local planning, team handoff and working documents
+/PROJECT_OVERVIEW.md
+/MOVEGAP_MVP_PLAN.md
+/docs/
