@@ -1,4 +1,5 @@
-import { useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
+import { CalendarTooltip } from './CalendarTooltip';
 import type { ComparisonResult, MoveInput, PlanResult } from '../../domain/types';
 import { money, shortDate } from '../../shared/format';
 import { addDays } from '../../domain/engine';
@@ -39,7 +40,15 @@ const month = (date: string) => new Intl.DateTimeFormat('en-US', { month: 'short
 export function CashCalendar({ input, plan }: { input: MoveInput; plan: PlanResult }) {
   const days = calendarDays(input, plan);
   const [selected, setSelected] = useState(() => Math.max(0, days.findIndex(day => day.date === plan.minBalanceDate)));
+  const [focusIndex, setFocusIndex] = useState(selected);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const pointerType = useRef('');
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
+  useEffect(() => {
+    const keyboard = () => { pointerType.current = 'keyboard'; };
+    window.addEventListener('keydown', keyboard, true);
+    return () => window.removeEventListener('keydown', keyboard, true);
+  }, []);
   const index = Math.min(selected, days.length - 1);
   const day = days[index];
   const offset = (new Date(`${input.startDate}T00:00:00Z`).getUTCDay() + 6) % 7;
@@ -48,6 +57,7 @@ export function CashCalendar({ input, plan }: { input: MoveInput; plan: PlanResu
   const shade = (value: number) => value < 0 ? 0 : Math.max(1, Math.min(4, Math.ceil(value / high * 4)));
   const status = day.low < 0 ? `Short by ${money(-day.low)}` : day.low < input.reserveCents ? 'Below your reserve' : 'Keeps your reserve';
   function navigate(event: KeyboardEvent<HTMLButtonElement>, current: number) {
+    if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') setPreviewIndex(null);
     let target = current;
     switch (event.key) {
       case 'ArrowUp': target--; break;
@@ -59,7 +69,7 @@ export function CashCalendar({ input, plan }: { input: MoveInput; plan: PlanResu
       default: return;
     }
     event.preventDefault(); target = Math.max(0, Math.min(59, target));
-    setSelected(target); buttons.current[target]?.focus({ preventScroll: true });
+    setFocusIndex(target); buttons.current[target]?.focus({ preventScroll: true });
     buttons.current[target]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }
   return <section className="cash-calendar" aria-labelledby="cash-calendar-title">
@@ -67,10 +77,17 @@ export function CashCalendar({ input, plan }: { input: MoveInput; plan: PlanResu
     <div className="calendar-scroll"><div className="calendar-grid" role="group" aria-label="Daily cash. Up and down move one day; left and right move one week. Enter selects a day." style={{ '--calendar-weeks': columns } as CSSProperties}>
       {Array.from({ length: columns }, (_, col) => { const date = days[Math.max(0, col * 7 - offset)]?.date; const prior = days[Math.max(0, (col - 1) * 7 - offset)]?.date; return date && (col === 0 || date.slice(0, 7) !== prior?.slice(0, 7)) ? <span className="calendar-month" key={`month-${col}`} style={{ gridColumn: `${col + 2} / span ${Math.min(2, columns - col)}`, gridRow: 1 }}>{month(date)}</span> : null; })}
       {weekday.map((label, row) => <span className="calendar-weekday" aria-hidden="true" key={label} style={{ gridRow: row + 2, gridColumn: 1 }}>{label}</span>)}
-      {days.map((item, i) => <button key={item.date} ref={node => { buttons.current[i] = node; }} className={`calendar-day shade-${shade(item.low)}${item.low < 0 ? ' has-shortfall' : ''}`} style={{ gridRow: (i + offset) % 7 + 2, gridColumn: Math.floor((i + offset) / 7) + 2 }} tabIndex={i === index ? 0 : -1} aria-pressed={i === index} aria-controls="calendar-day-detail" aria-label={`${shortDate(item.date)}: lowest cash ${money(item.low)}, ${item.low < 0 ? 'cash shortfall' : item.low < input.reserveCents ? 'below reserve' : 'keeps reserve'}. ${item.rows.length} events.`} onClick={() => setSelected(i)} onKeyDown={event => navigate(event, i)}/>)}
+      {days.map((item, i) => <button key={item.date} ref={node => { buttons.current[i] = node; }} className={`calendar-day shade-${shade(item.low)}${item.low < 0 ? ' has-shortfall' : ''}`} style={{ gridRow: (i + offset) % 7 + 2, gridColumn: Math.floor((i + offset) / 7) + 2 }} tabIndex={i === focusIndex ? 0 : -1} aria-pressed={i === index} aria-controls="calendar-day-detail" aria-label={`${shortDate(item.date)}: lowest cash ${money(item.low)}, ${item.low < 0 ? `short by ${money(-item.low)}` : item.low < input.reserveCents ? 'below reserve' : 'keeps reserve'}. ${item.rows.length} events.`}
+        onPointerEnter={event => { if (event.pointerType === 'mouse') setPreviewIndex(i); }}
+        onPointerLeave={() => setPreviewIndex(null)}
+        onPointerDown={event => { pointerType.current = event.pointerType; setPreviewIndex(null); }}
+        onFocus={event => { setFocusIndex(i); if (pointerType.current !== 'touch' && pointerType.current !== 'mouse' && event.currentTarget.matches(':focus-visible')) setPreviewIndex(i); }}
+        onBlur={() => setPreviewIndex(null)}
+        onClick={() => { setPreviewIndex(null); setFocusIndex(i); setSelected(i); }} onKeyDown={event => navigate(event, i)}/>)}
     </div></div>
     <div className="calendar-legend"><span><i className="calendar-shortfall-key"/>Cash shortfall</span><span>Less cash <i className="shade-1"/><i className="shade-2"/><i className="shade-3"/><i className="shade-4"/> More cash</span></div>
-    <p className="calendar-keyboard-hint">Select a day for details. Use arrow keys to move through the calendar.</p>
+    <p className="calendar-keyboard-hint">Hover or focus to preview. Click, tap, or press Enter or Space for details. Use arrow keys to move through the calendar.</p>
+    {previewIndex !== null && buttons.current[previewIndex] && <CalendarTooltip key={previewIndex} anchor={buttons.current[previewIndex]!} text={`${shortDate(days[previewIndex].date)} · ${days[previewIndex].low < 0 ? `Short by ${money(-days[previewIndex].low)}` : `Balance ${money(days[previewIndex].low)}`}`}/>}
     <div id="calendar-day-detail" className="calendar-day-detail" aria-live="polite" aria-atomic="true"><h4>{shortDate(day.date)} · {status}</h4><p>Lowest cash: <strong>{money(day.low)}</strong> · End of day: <strong>{money(day.closing)}</strong></p>
       {day.rows.length ? <ul>{day.rows.map(row => <li key={row.eventId}><span>{row.label}{row.isActual ? ' · Actual' : ''}</span><span>{row.cashChangeCents < 0 ? '−' : '+'}{money(row.effectiveAmountCents)}<small>{money(row.balanceCents)} left</small></span></li>)}</ul> : <p>No payments or income entered for this day. Cash carries over from the previous day.</p>}
       {day.low !== day.closing && <p>A later payment or income changed the balance. The square shows the lowest point, not just the end of the day.</p>}

@@ -1,4 +1,5 @@
 /* Page-local exploration tools. No shared styles or dependencies. */
+.calendar-tooltip { position:fixed; z-index:1000; width:max-content; max-width:min(220px,calc(100vw - 16px)); padding:8px 10px; border:1px solid #cdd2c6; border-radius:6px; background:var(--surface-popover,#fff); color:#20231e; box-shadow:0 3px 12px #0002; font:13px/1.4 var(--font-text,system-ui,sans-serif); pointer-events:none; overflow-wrap:anywhere; }
 .compare-plans-page .compare-scenario { padding:22px; margin-bottom:22px; border:1px solid var(--line); border-radius:10px; background:#fff; }
 .compare-plans-page .compare-scenario.is-active { border:2px solid #89711e; background:#fffbee; }
 .compare-scenario h2 { font-size:18px; }
