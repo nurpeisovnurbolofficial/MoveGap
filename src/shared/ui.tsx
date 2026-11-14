@@ -22,19 +22,31 @@ const paths: Record<IconName, ReactNode> = {
 export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
-export function MoneyField({ label, value, onChange, hint }: { label: string; value: number; onChange: (v: number) => void; hint?: string }) {
+export function MoneyField({ label, value, onChange, hint, error, onBlur }: { label: string; value: number; onChange: (v: number) => void; hint?: string; error?: string; onBlur?: () => void }) {
   const id = useId();
-  return <div className="field"><label htmlFor={id}>{label}</label><div className="money-input"><span aria-hidden="true">$</span><input id={id} type="number" inputMode="decimal" min="0" max="10000000" step="0.01" value={Number.isFinite(value) ? value / 100 : ''} onChange={e => onChange(e.target.value === '' ? NaN : Math.round(Number(e.target.value) * 100))} aria-describedby={hint ? `${id}-hint` : undefined}/></div>{hint && <span id={`${id}-hint`} className="field-hint">{hint}</span>}</div>;
+  return <div className="field"><label htmlFor={id}>{label}</label><div className="money-input"><span aria-hidden="true">$</span><input id={id} type="number" inputMode="decimal" min="0" max="10000000" step="0.01" value={Number.isFinite(value) ? value / 100 : ''} onChange={e => onChange(e.target.value === '' ? NaN : Math.round(Number(e.target.value) * 100))} onBlur={onBlur} aria-invalid={Boolean(error)} aria-describedby={[hint ? `${id}-hint` : '', error ? `${id}-error` : ''].filter(Boolean).join(' ') || undefined}/></div>{hint && <span id={`${id}-hint`} className="field-hint">{hint}</span>}{error && <span id={`${id}-error`} className="field-hint negative">{error}</span>}</div>;
 }
-export function DateField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+export function DateField({ label, value, onChange, error, onBlur }: { label: string; value: string; onChange: (v: string) => void; error?: string; onBlur?: () => void }) {
   const id = useId();
-  return <div className="field"><label htmlFor={id}>{label}</label><input id={id} type="date" value={value} onChange={e => onChange(e.target.value)}/></div>;
+  return <div className="field"><label htmlFor={id}>{label}</label><input id={id} type="date" value={value} onChange={e => onChange(e.target.value)} onBlur={onBlur} aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-error` : undefined}/>{error && <span id={`${id}-error`} className="field-hint negative">{error}</span>}</div>;
 }
 export function Panel({ title, number, children, aside }: { title: string; number?: string; children: ReactNode; aside?: ReactNode }) {
   return <section className="panel"><div className="panel-heading"><h2>{number && <span className="section-number">{number}</span>}{title}</h2>{aside}</div>{children}</section>;
 }
 export function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   const ref = useRef<HTMLDialogElement>(null); const id = useId();
-  useEffect(() => { const dialog=ref.current!; dialog.showModal(); return () => dialog.close(); }, []);
+  const returnFocus = useRef(document.activeElement instanceof HTMLElement ? document.activeElement : null);
+  useEffect(() => {
+    const dialog = ref.current!;
+    dialog.showModal();
+    return () => {
+      dialog.close();
+      queueMicrotask(() => {
+        if (document.querySelector('dialog[open]')) return;
+        const target = returnFocus.current?.isConnected ? returnFocus.current : document.getElementById('main-content');
+        target?.focus({ preventScroll: true });
+      });
+    };
+  }, []);
   return <dialog ref={ref} className="modal" aria-labelledby={id} onCancel={onClose} onClick={e => { if (e.target === ref.current) onClose(); }}><div className="modal-top"><h2 id={id}>{title}</h2><button className="icon-button" aria-label="Close dialog" onClick={onClose}><Icon name="close"/></button></div>{children}</dialog>;
 }
