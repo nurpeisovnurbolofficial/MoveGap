@@ -11,7 +11,7 @@ describe('recorded payment history', () => {
     input.commonEvents[0].actual = { date: '2027-02-01', amountCents: 12500 };
     const html = renderToStaticMarkup(createElement(PaymentHistory, { input, onRecord: () => {} }));
     expect(html).toContain('Feb 1');
-    expect(html).toContain('No plan selected');
+    expect(html).toContain('Outside the 60-day forecast; no plan selected');
     expect(html).toContain('Edit or clear actual');
   });
 
