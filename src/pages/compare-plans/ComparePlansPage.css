@@ -1,0 +1,30 @@
+.compare-plans-page .compare-highlights { display:flex; flex-wrap:wrap; gap:6px; margin:12px 0; }
+.compare-plans-page .compare-dates { margin-block:12px; }
+.compare-plans-page .compare-payments { border-block:1px solid var(--line); padding:12px 0; margin-bottom:12px; }
+.compare-plans-page .compare-payments summary { cursor:pointer; font-weight:600; min-height:28px; }
+.compare-plans-page .compare-payments p,
+.compare-plans-page .compare-critical p { color:var(--p-muted); font-size:12px; margin-top:10px; }
+.compare-plans-page .compare-payments ul,
+.compare-plans-page .compare-critical ol { list-style:none; padding:0; margin:12px 0; }
+.compare-plans-page .compare-payments li,
+.compare-plans-page .compare-critical li { display:flex; justify-content:space-between; gap:16px; padding:10px 0; border-bottom:1px solid var(--line); font-size:12px; }
+.compare-plans-page li small { display:block; color:var(--p-muted); margin-top:4px; }
+.compare-plans-page li > span:first-child { min-width:0; overflow-wrap:anywhere; }
+.compare-plans-page .compare-payments li > strong { flex-shrink:0; }
+.compare-plans-page .compare-critical { margin-top:20px; border:1px solid var(--line); border-radius:8px; padding:18px; background:#f8f9fb; }
+.compare-plans-page .compare-critical li > span:last-child { flex-shrink:0; text-align:right; color:var(--p-muted); }
+.compare-plans-page .compare-critical li strong { display:block; color:var(--p-ink); margin-top:4px; }
+.compare-plans-page .compare-chart-scroll { overflow-x:auto; }
+.compare-plans-page .plan-card { min-width:0; overflow-wrap:anywhere; }
+.compare-plans-page .chart-summary { flex-wrap:wrap; }
+.compare-plans-page .compare-cost-note { color:var(--p-muted); margin:0 0 24px; }
+@media (max-width:600px) {
+  .compare-plans-page .cash-chart { min-width:560px; }
+  .compare-plans-page .compare-critical { padding:14px; }
+  .compare-plans-page .plan-card-top { flex-wrap:wrap; }
+  .compare-plans-page .comparison-insight { display:grid; grid-template-columns:32px minmax(0,1fr); align-items:start; }
+  .compare-plans-page .comparison-insight > div { min-width:0; }
+  .compare-plans-page .comparison-insight > .text-button { grid-column:2; margin-left:0; justify-self:start; }
+  .compare-plans-page .panel-heading { flex-wrap:wrap; }
+  .compare-plans-page .compare-highlights .badge { white-space:normal; }
+}
