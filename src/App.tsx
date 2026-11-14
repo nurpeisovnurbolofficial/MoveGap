@@ -7,6 +7,7 @@ import { YourMovePage } from './pages/your-move/YourMovePage';
 import { createOwnMove } from './pages/your-move/inputHelpers';
 import { ComparePlansPage } from './pages/compare-plans/ComparePlansPage';
 import { YourPlanPage } from './pages/your-plan/YourPlanPage';
+import { MovePassDialog } from './pages/your-plan/MovePassDialog';
 import { DateField, Icon, Modal, MoneyField } from './shared/ui';
 import { loadSnapshot, saveSnapshot, STORAGE_KEY } from './state/storage';
 import './styles.css';
@@ -74,6 +75,9 @@ export default function App() {
     {editing && <PaymentDialog key={`${editing.event.id}-${editing.actual}`} {...editing} onClose={() => setEditing(null)} onSave={event => updateEvent(event.id, event)} onDelete={() => updateEvent(editing.event.id)}/>}
     {dialog === 'help' && <Modal title="A little clarity before a big move." onClose={() => setDialog(null)}><ol className="help-steps"><li><strong>Start with your numbers.</strong><p>Enter available cash, paydays, bills and confirmed moving options.</p></li><li><strong>Compare the full cash picture.</strong><p>Look at the lowest balance, your reserve and payment dates for each option.</p></li><li><strong>Keep track as it happens.</strong><p>Save a plan and replace planned payments with actual amounts and dates.</p></li></ol><div className="demo-disclosure">This is a working prototype with fictional example data. No money is charged. Results cover only your entered payments; deposit dates are estimates, not legal advice.</div></Modal>}
     {dialog === 'reset' && <Modal title="Start again with the example?" onClose={() => setDialog(null)}><p className="modal-intro">This removes the saved MoveGap plan from this browser and replaces your current entries with the fictional example.</p><div className="modal-actions"><button className="button secondary" onClick={() => setDialog(null)}>Keep my plan</button><button className="button primary" onClick={() => { try { localStorage.removeItem(STORAGE_KEY); setInput(createExample()); setSource('example'); setSelectedId(null); setSavedAt(null); setDirty(false); setDemoAccess(false); setMessage(null); setDialog(null); navigate('move'); } catch { setMessage('The saved plan could not be removed. Nothing has been reset.'); setDialog(null); } }}>Reset example</button></div></Modal>}
-    {dialog === 'pass' && <Modal title="Keep your move on track." onClose={() => setDialog(null)}><p className="modal-intro">One Move Pass for the plan you will come back to.</p><div className="pass-price">$9.99<span>proposed one-time price</span></div><ul className="pass-features"><li><Icon name="check" size={18}/>A plan saved in this browser</li><li><Icon name="check" size={18}/>Payment schedule and actual amounts</li><li><Icon name="check" size={18}/>Your deposit return, tracked separately</li></ul><div className="demo-disclosure"><strong>Hackathon demo — no payment collected.</strong><p>The price is a hypothesis. Use the full demo to save and test the plan. Payment processing and pass expiry are not connected.</p></div><button className="button primary full-width" onClick={() => { setDemoAccess(true); save(); setDialog(null); }}>Try the full demo<Icon name="arrow" size={18}/></button></Modal>}
+    {dialog === 'pass' && <MovePassDialog
+      onClose={() => setDialog(null)}
+      onDemo={() => { setDemoAccess(true); save(); setDialog(null); }}
+    />}
   </WorkspaceShell>;
 }
