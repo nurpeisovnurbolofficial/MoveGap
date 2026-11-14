@@ -12,6 +12,17 @@ export interface PaymentEvent {
   confirmation: Confirmation;
   /** Set BOTH fields when a payment happened. They replace, never add to, the plan. */
   actual?: { date: DateOnly; amountCents: number };
+  /** Explicit relationship to recorded operations. Missing links are never inferred from labels. */
+  actualLinks?: Record<string, 'same-payment' | 'separate-payment'>;
+}
+
+export type PaymentOwner = { kind: 'common' } | { kind: 'housing' | 'moving'; id: string };
+export interface PaymentHistoryEntry {
+  event: PaymentEvent;
+  owner: PaymentOwner;
+  ownerLabel: string;
+  effectiveDate: DateOnly;
+  exclusion: 'before-start' | 'after-window' | 'expected-refund' | 'unconfirmed-income' | null;
 }
 
 export interface HousingOption {
