@@ -1,0 +1,11 @@
+﻿.plan-comparison-summary { background:#fff; border:1px solid #dfe3e9; border-radius:9px; padding:22px; margin:22px 0; }
+.plan-comparison-summary h2 { font-size:18px; margin-bottom:16px; }
+.comparison-pair { display:grid; gap:20px; }
+.comparison-pair.has-alternative { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.comparison-pair h3 { font-size:14px; }
+.plan-comparison-summary p { font-size:14px; line-height:1.7; margin-top:8px; }
+.plan-comparison-summary .comparison-pair-name { font-size:12px; color:#505966; overflow-wrap:anywhere; }
+.comparison-conditional,.comparison-no-fit { color:#76520f; }
+.plan-comparison-summary .comparison-no-fit { margin-bottom:16px; }
+.plan-comparison-summary .comparison-tradeoff { border-top:1px solid #dfe3e9; padding-top:14px; margin-top:18px; color:#505966; font-size:13px; }
+@media(max-width:600px) { .plan-comparison-summary { padding:18px 14px; } .comparison-pair.has-alternative { grid-template-columns:minmax(0,1fr); } .comparison-pair.has-alternative > div+div { border-top:1px solid #dfe3e9; padding-top:16px; } }

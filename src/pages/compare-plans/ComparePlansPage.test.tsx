@@ -126,7 +126,7 @@ describe('Compare Plans explanations', () => {
     const input = createExample();
     const first = calculatePlans(input).plans[0].id;
     const html = render(input, first);
-    expect(count(html, 'Your current plan')).toBe(1);
+    expect(count(html, '>Your current plan<')).toBe(1);
     expect(count(html, 'Continue with this plan')).toBe(1);
     expect(html).toContain('id="compare-detail-title">Plan 1');
   });
