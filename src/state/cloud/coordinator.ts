@@ -220,7 +220,11 @@ export class CloudPlanCoordinator {
         await this.store.write({ access, metadata: metadata(record), acknowledged: record.document }, null);
         await this.draft.replaceWith(record.document);
         this.staged = null; this.cloud = { kind: 'saved' }; this.revealed = false; this.localProblem = null;
-      } catch { this.problem('Could not replace the local plan safely. Your prior draft was kept.'); }
+      } catch {
+        // Keep the version choice actionable if local persistence fails during restoration.
+        this.cloud = { kind: 'conflict', currentRevision: this.staged?.record.revision ?? this.store.state?.binding?.metadata.revision ?? 1 };
+        this.problem('Could not replace the local plan safely. Your prior draft was kept. Resolve the storage problem and try loading again.');
+      }
     });
   }
 

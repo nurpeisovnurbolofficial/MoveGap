@@ -35,7 +35,9 @@ export class HttpCloudPlanClient implements CloudPlanClient {
       const headers: Record<string, string> = { Authorization: `Bearer ${secret}`, Accept: 'application/json' };
       if (encoded !== undefined) headers['Content-Type'] = 'application/json';
       if (nextSecret) headers['X-MoveGap-New-Key'] = nextSecret;
-      const response = await this.fetcher(new URL(path, this.origin), {
+      // Native browser fetch cannot be invoked with this client instance as its receiver.
+      const fetcher = this.fetcher;
+      const response = await fetcher(new URL(path, this.origin), {
         method, headers, body: encoded, signal: controller.signal, credentials: 'omit',
         cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer',
       });

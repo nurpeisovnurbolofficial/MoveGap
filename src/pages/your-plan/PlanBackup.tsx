@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { WorkspaceContext } from '../../state/WorkspaceContext';
+import { useContext, useState } from 'react';
 import type { MoveInput } from '../../domain/types';
 import { Icon, Panel } from '../../shared/ui';
 import { createPlanBackup, MAX_BACKUP_BYTES, parsePlanBackup, restorePlanBackup, type PlanBackupFile } from '../../state/backup';
@@ -6,7 +7,8 @@ import { STORAGE_KEY } from '../../state/storage';
 import './PlanBackup.css';
 
 export function PlanBackup({ input, selectedId }: { input: MoveInput; selectedId: string | null }) {
-  const [preview, setPreview] = useState<{ file: PlanBackupFile; baseline: string | null } | null>(null);
+  const workspace = useContext(WorkspaceContext);
+  const [preview, setPreview] = useState<{ file: PlanBackupFile; baseline: string | null; token?: string } | null>(null);
   const [message, setMessage] = useState('');
 
   function download() {
@@ -27,14 +29,20 @@ export function PlanBackup({ input, selectedId }: { input: MoveInput; selectedId
     if (file.size > MAX_BACKUP_BYTES) { setMessage('This backup file is too large.'); return; }
     try {
       const parsed = parsePlanBackup(await file.text());
-      setPreview({ file: parsed, baseline: localStorage.getItem(STORAGE_KEY) });
+      setPreview({ file: parsed, baseline: localStorage.getItem(STORAGE_KEY), token: workspace ? JSON.stringify(workspace.content) : undefined });
       setMessage('Review the details below before replacing your current browser data.');
     } catch { setMessage('This file is invalid or could not be read. Your current data was not changed.'); }
   }
 
-  function restore() {
+  async function restore() {
     if (!preview) return;
     try {
+      if (workspace) {
+        if (preview.token !== JSON.stringify(workspace.content)) throw new Error('Your draft changed. Choose the backup again before replacing it.');
+        await workspace.replaceDocument({ schemaVersion: 1, input: preview.file.snapshot.input, selectedId: preview.file.snapshot.selectedId });
+        setPreview(null); setMessage('Backup restored. The previous draft is available in local recovery.');
+        return;
+      }
       const current = parsePlanBackup(createPlanBackup(input, selectedId)).snapshot;
       restorePlanBackup(preview.file, localStorage, preview.baseline, current);
       location.reload();
@@ -57,7 +65,7 @@ export function PlanBackup({ input, selectedId }: { input: MoveInput; selectedId
       <p>{preview.file.snapshot.input.housingOptions.length} housing options · {preview.file.snapshot.input.movingOptions.length} moving options · {preview.file.snapshot.input.commonEvents.length + preview.file.snapshot.input.housingOptions.reduce((n, item) => n + item.events.length, 0) + preview.file.snapshot.input.movingOptions.reduce((n, item) => n + item.events.length, 0)} payments</p>
       <p>Selected plan: {preview.file.snapshot.selectedId ?? 'none'}</p>
       <p>Your current browser plan will be preserved before replacement.</p>
-      <div className="backup-actions"><button type="button" className="button secondary" onClick={() => setPreview(null)}>Cancel</button><button type="button" className="button primary" onClick={restore}>Replace and restore</button></div>
+      <div className="backup-actions"><button type="button" className="button secondary" onClick={() => setPreview(null)}>Cancel</button><button type="button" className="button primary" onClick={() => void restore()}>Replace and restore</button></div>
     </div>}
   </Panel>;
 }

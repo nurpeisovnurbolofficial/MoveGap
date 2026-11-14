@@ -267,3 +267,24 @@ it('releases the operation lock when protecting the local draft fails', async ()
   await coordinator.retry(); expect(create).toHaveBeenCalledOnce();
   expect(coordinator.panelState.cloud.kind).toBe('saved');
 });
+
+it('calls the fetch implementation without binding it to the client instance', async () => {
+  const fetcher = function (this: unknown) {
+    expect(this).toBeUndefined();
+    return Promise.resolve(new Response(JSON.stringify({ ok: true, value: record() }), { status: 201 }));
+  };
+  const client = new HttpCloudPlanClient('https://movegap.example/', fetcher as typeof fetch);
+  expect((await client.create(generateCloudSecret(), { requestId: id, document: cloudPlanDocumentExample() })).ok).toBe(true);
+});
+
+it('keeps restoration actionable after the local replacement fails', async () => {
+  const local = storage(); const binding = new CloudLocalStore(local, locks()); const draft = bridge();
+  vi.mocked(draft.adapter.replaceWith).mockRejectedValueOnce(new Error('Local storage quota'));
+  const client = { load: vi.fn(async () => ({ ok: true as const, value: record() })) } as unknown as CloudPlanClient;
+  const coordinator = new CloudPlanCoordinator(client, binding, draft.adapter, () => {}, true);
+  await coordinator.open({ planId: record().planId, secret: generateCloudSecret() });
+  await coordinator.loadServerVersion();
+  expect(coordinator.panelState.cloud.kind).toBe('conflict');
+  await coordinator.loadServerVersion();
+  expect(coordinator.panelState.cloud.kind).toBe('saved');
+});

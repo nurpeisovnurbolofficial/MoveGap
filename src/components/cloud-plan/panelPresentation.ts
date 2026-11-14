@@ -9,7 +9,7 @@ export function cloudMessage(state: CloudPlanPanelState): string {
     case 'saving': return cloud.operation === 'remove' ? 'Deleting the online copy…' : cloud.operation === 'rotate-key' ? 'Changing the private link…' : 'Saving a copy online…';
     case 'saved': return state.hasUnsentChanges ? 'Your latest changes have not been saved online.' : 'Your current plan is saved online.';
     case 'dirty': return 'Your latest changes have not been saved online.';
-    case 'conflict': return 'Another browser saved a newer version. Choose which version to keep working with.';
+    case 'conflict': return 'Review the online version before replacing this browser’s plan. Choose which version to keep working with.';
     case 'error': {
       const error = cloud.error;
       if ('outcome' in error && error.outcome === 'unknown') return 'The last request may have completed, but we could not confirm it. Retry the same request before starting another save.';

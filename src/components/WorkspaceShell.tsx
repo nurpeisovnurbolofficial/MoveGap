@@ -22,7 +22,7 @@ export function WorkspaceShell({ page, children, onReset, onHelp, onSave, saved,
         <div className="workspace-tools">
           <button className="icon-button" aria-label="How this works" onClick={onHelp}><Icon name="info"/></button>
           <button className="button secondary workspace-reset" aria-label="Reset example" onClick={onReset}><Icon name="refresh" size={16}/><span>Reset example</span></button>
-          <button className="button primary workspace-save" disabled={!hasPlan} title={!hasPlan ? 'Choose a moving option to save your plan' : undefined} onClick={onSave}><Icon name="save" size={17}/>{saved ? 'Saved' : 'Save plan'}</button>
+          <button className="button primary workspace-save" disabled={!hasPlan} title={!hasPlan ? 'Choose a moving option to save your plan' : undefined} onClick={onSave}><Icon name="save" size={17}/>{saved ? 'Saved' : 'Save draft'}</button>
         </div>
       </div>
       <div className="workspace-nav-row">
@@ -33,6 +33,6 @@ export function WorkspaceShell({ page, children, onReset, onHelp, onSave, saved,
       </div>
     </header>
     <main id="main-content" tabIndex={-1} className="workspace-canvas" key={page}>{children}</main>
-    <footer className="workspace-footer"><span>MoveGap · Plan before you commit.</span><span>Your data stays in this browser. Calculations use only the payments you enter.</span><button className="text-button" onClick={onHelp}>How this works</button></footer>
+    <footer className="workspace-footer"><span>MoveGap · Plan before you commit.</span><span>Drafts stay in this browser. Save online only when you choose. Calculations use your entered payments.</span><button className="text-button" onClick={onHelp}>How this works</button></footer>
   </div>;
 }

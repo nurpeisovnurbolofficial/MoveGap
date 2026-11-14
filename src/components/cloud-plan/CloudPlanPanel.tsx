@@ -49,7 +49,11 @@ export function CloudPlanPanel(props: CloudPlanPanelProps) {
   function invoke(action: () => void) {
     if (locked.current || permissions.busy) return;
     locked.current=true; setWaiting(true); setActionError('');
-    try { action(); } catch { locked.current=false;setWaiting(false);setActionError('The action could not be started. Your current plan is still open. Please try again.'); }
+    try {
+      const completion: unknown = action();
+      if (completion instanceof Promise) void completion.catch(() => setActionError('The action could not finish. Your current draft is still open.'))
+        .finally(() => { locked.current=false; setWaiting(false); });
+    } catch { locked.current=false;setWaiting(false);setActionError('The action could not be started. Your current plan is still open. Please try again.'); }
   }
   function confirm() {
     const action = confirmation; setConfirmation(null);
