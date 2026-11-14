@@ -1,4 +1,4 @@
-﻿import { useRef, useState, type Ref } from 'react';
+import { useRef, useState, type Ref } from 'react';
 import type { ComparisonResult, MoveInput, PlanResult } from '../../domain/types';
 import { CashChart } from '../../components/CashChart';
 import { Icon } from '../../shared/ui';
@@ -8,6 +8,9 @@ import {
   type Highlight, type HighlightKey, type MoneyStatus,
 } from './planInsights';
 import './ComparePlansPage.css';
+import { calculatePlans } from '../../domain/engine';
+import { delayIncome, delayableIncome } from './explorationData';
+import { CashCalendar, OptionMatrix, PlanRecovery, ScenarioControls } from './PlanningTools';
 
 const statusText: Record<MoneyStatus, string> = { fits: 'Keeps your reserve', reserve: 'Uses your reserve', short: 'Not enough cash' };
 const statusBadge: Record<MoneyStatus, string> = { fits: 'green', reserve: 'red', short: 'red' };
@@ -27,7 +30,16 @@ type Props = {
 };
 
 /** All financial outcomes and recommendation IDs come from the shared engine. */
-export function ComparePlansPage({ input, result, onChoose, onBack, currentPlanId = null }: Props) {
+export function ComparePlansPage({ input: originalInput, result: originalResult, onChoose, onBack, currentPlanId = null }: Props) {
+  const [scenarioOn, setScenarioOn] = useState(false);
+  const [incomeId, setIncomeId] = useState('');
+  const [delayDays, setDelayDays] = useState(2);
+  const incomes = originalResult.errors.length ? [] : delayableIncome(originalInput, originalResult.horizonEnd);
+  const selectedIncomeId = incomes.find(event => event.id === incomeId)?.id ?? incomes[0]?.id ?? '';
+  const scenarioActive = scenarioOn && !!selectedIncomeId && !originalResult.errors.length;
+  const input = scenarioActive ? delayIncome(originalInput, selectedIncomeId, delayDays) : originalInput;
+  const result = scenarioActive ? calculatePlans(input) : originalResult;
+  const choosePlan = (id: string) => { if (!scenarioActive) onChoose(id); };
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const detailRef = useRef<HTMLElement>(null);
   const summary = highlights(result);
@@ -68,11 +80,13 @@ export function ComparePlansPage({ input, result, onChoose, onBack, currentPlanI
 
   return <div className="compare-plans-page">
     {heading}
-    <DecisionSummary result={result} input={input} summary={summary} number={number} currentPlanId={currentPlanId} onChoose={onChoose} onBack={onBack} onShowCard={showCard}/>
+    <ScenarioControls input={originalInput} original={originalResult} current={result} eventId={selectedIncomeId} days={delayDays} active={scenarioActive} onEvent={setIncomeId} onDays={setDelayDays} onActive={setScenarioOn}/>
+    <DecisionSummary result={result} input={input} summary={summary} number={number} currentPlanId={currentPlanId} onChoose={choosePlan} onBack={onBack} onShowCard={showCard} previewOnly={scenarioActive}/>
+    <OptionMatrix input={input} result={result} focusedId={focused.id} onSelect={showDetail}/>
 
     <div className="comparison-grid">{result.plans.map(plan => <PlanCard key={plan.id} plan={plan} number={number(plan.id)} input={input}
       badges={summary.bestFitId === plan.id ? ['Best fit'] : summary.items.filter(item => item.winnerIds.includes(plan.id)).map(item => item.winnerIds.length > 1 ? `${item.label} · tie` : item.label)}
-      focused={focused.id === plan.id} current={currentPlanId === plan.id} onChoose={() => onChoose(plan.id)} onShow={() => showDetail(plan.id)}/>)}</div>
+      focused={focused.id === plan.id} current={currentPlanId === plan.id} onChoose={() => choosePlan(plan.id)} onShow={() => showDetail(plan.id)} previewOnly={scenarioActive}/>)}</div>
 
     <div className="compare-notes">
       {sameCosts && <p><Icon name="info" size={16}/><span>All plans have the same spending ({money(result.plans[0].costCents)}). Different payment dates change <em>when</em> you need cash, not how much you spend.</span></p>}
@@ -80,7 +94,8 @@ export function ComparePlansPage({ input, result, onChoose, onBack, currentPlanI
       {result.rejected.length > 0 && <RejectedList input={input} result={result}/>}
     </div>
 
-    <PlanDetail ref={detailRef} plan={focused} input={input} plans={result.plans} number={number} current={currentPlanId === focused.id} onSelect={setFocusedId} onChoose={() => onChoose(focused.id)}/>
+    <PlanDetail ref={detailRef} plan={focused} input={input} plans={result.plans} number={number} current={currentPlanId === focused.id} onSelect={setFocusedId} onChoose={() => choosePlan(focused.id)} previewOnly={scenarioActive} onRestore={() => setScenarioOn(false)}/>
+    <PlanRecovery key={`${focused.id}-${scenarioActive}-${delayDays}-${selectedIncomeId}`} input={input} plan={focused} number={number(focused.id)} onBack={onBack}/>
 
     <details className="assumptions"><summary><Icon name="info" size={17}/>How this comparison works</summary>
       <p>Only the payments and income you entered within the same 60-day period are included. Expected deposit returns and unconfirmed income are left out until received or confirmed. Refundable deposits reduce your available cash, but are not counted as spending.</p>
@@ -97,9 +112,10 @@ function RejectedList({ input, result }: { input: MoveInput; result: ComparisonR
   </div>;
 }
 
-function DecisionSummary({ result, input, summary, number, currentPlanId, onChoose, onBack, onShowCard }: {
+function DecisionSummary({ result, input, summary, number, currentPlanId, onChoose, onBack, onShowCard, previewOnly = false }: {
   result: ComparisonResult; input: MoveInput; summary: ReturnType<typeof highlights>; number: (id: string) => number;
   currentPlanId: string | null; onChoose: (id: string) => void; onBack: () => void; onShowCard: (id: string) => void;
+  previewOnly?: boolean;
 }) {
   const reserve = money(input.reserveCents);
   const { eligible, items, bestFitId } = summary;
@@ -146,7 +162,7 @@ function DecisionSummary({ result, input, summary, number, currentPlanId, onChoo
         {conditionalNote}
       </div>
       <div className="compare-summary-actions">
-        <button className="button primary" onClick={() => onChoose(plan.id)}>{plan.id === currentPlanId ? 'Continue with' : 'Choose'} Plan {number(plan.id)}<Icon name="arrow" size={16}/></button>
+        <button className="button primary" disabled={previewOnly} onClick={() => onChoose(plan.id)}>{previewOnly ? 'What-if preview only' : <>{plan.id === currentPlanId ? 'Continue with' : 'Choose'} Plan {number(plan.id)}</>}<Icon name="arrow" size={16}/></button>
         {editButton(false)}
       </div>
     </section>;
@@ -174,8 +190,9 @@ function DecisionSummary({ result, input, summary, number, currentPlanId, onChoo
   </section>;
 }
 
-function PlanCard({ plan, number, input, badges, focused, current, onChoose, onShow }: {
+function PlanCard({ plan, number, input, badges, focused, current, onChoose, onShow, previewOnly = false }: {
   plan: PlanResult; number: number; input: MoveInput; badges: string[]; focused: boolean; current: boolean; onChoose: () => void; onShow: () => void;
+  previewOnly?: boolean;
 }) {
   const status = moneyStatus(plan);
   const { housing, moving } = planOptions(plan, input);
@@ -220,7 +237,7 @@ function PlanCard({ plan, number, input, badges, focused, current, onChoose, onS
     {unconfirmed.length > 0 && <p className="compare-confirm-note"><strong>Confirm before relying on it:</strong> {unconfirmed.join(', ')}.</p>}
 
     <div className="compare-card-actions">
-      <button className={`button ${isEligible(plan) ? 'primary' : 'secondary'} full-width`} aria-label={`${current ? 'Continue with' : 'Choose'} Plan ${number}, move ${shortDate(plan.moveDate)}`} onClick={onChoose}>{current ? 'Continue with this plan' : 'Choose this plan'}<Icon name="arrow" size={17}/></button>
+      <button className={`button ${isEligible(plan) ? 'primary' : 'secondary'} full-width`} disabled={previewOnly} aria-label={previewOnly ? `Plan ${number}: return to original dates to choose` : `${current ? 'Continue with' : 'Choose'} Plan ${number}, move ${shortDate(plan.moveDate)}`} onClick={onChoose}>{previewOnly ? 'Return to original dates to choose' : current ? 'Continue with this plan' : 'Choose this plan'}<Icon name="arrow" size={17}/></button>
       <button className="preview-button" aria-pressed={focused} aria-controls="compare-detail" onClick={onShow}><Icon name="chart" size={16}/>{focused ? 'Shown in detail below' : 'All payments & chart'}</button>
     </div>
   </article>;
@@ -260,8 +277,10 @@ function CriticalDayBox({ plan, input }: { plan: PlanResult; input: MoveInput })
   </div>;
 }
 
-function PlanDetail({ ref, plan, input, plans, number, current, onSelect, onChoose }: {
+function PlanDetail({ ref, plan, input, plans, number, current, onSelect, onChoose, previewOnly = false, onRestore }: {
   ref: Ref<HTMLElement>; plan: PlanResult; input: MoveInput; plans: PlanResult[]; number: (id: string) => number; current: boolean; onSelect: (id: string) => void; onChoose: () => void;
+  previewOnly?: boolean;
+  onRestore: () => void;
 }) {
   const { housing, moving } = planOptions(plan, input);
   const lowest = lowestIndex(plan);
@@ -277,6 +296,7 @@ function PlanDetail({ ref, plan, input, plans, number, current, onSelect, onChoo
       {plans.length > 1 && <div className="compare-tabs" role="group" aria-label="Plan to show">{plans.map(p => <button key={p.id} aria-pressed={p.id === plan.id} onClick={() => onSelect(p.id)}><i className={`compare-dot tone-${toneOf(p)}`} aria-hidden="true"/>Plan {number(p.id)}</button>)}</div>}
     </div>
 
+    {previewOnly && <div className="scenario-detail-note"><p><strong>What-if results.</strong> These dates are a test, not your saved plan.</p><button className="button secondary" onClick={onRestore}>Stop testing this delay</button></div>}
     <dl className="compare-detail-stats">
       <div><dt>Lowest balance</dt><dd className={plan.meetsReserve ? '' : 'negative'}>{money(plan.minBalanceCents)}</dd><small>on {shortDate(plan.minBalanceDate)}</small></div>
       <div><dt>Below your reserve</dt><dd>{plan.firstBelowReserveDate ? `from ${shortDate(plan.firstBelowReserveDate)}` : 'Never'}</dd><small>reserve {money(input.reserveCents)}</small></div>
@@ -284,6 +304,7 @@ function PlanDetail({ ref, plan, input, plans, number, current, onSelect, onChoo
       <div><dt>Cash on day 60</dt><dd>{money(plan.endingBalanceCents)}</dd><small>after every entered payment</small></div>
     </dl>
 
+    <CashCalendar key={`${plan.id}-${input.startDate}`} input={input} plan={plan}/>
     <h3 className="compare-detail-subhead">Cash after each payment</h3>
     <p className="compare-help">The line steps down for each payment and up for money received. The shaded area is below your {money(input.reserveCents)} reserve.</p>
     <p className="compare-scroll-hint">Swipe sideways to see all 60 days.</p>
@@ -314,8 +335,7 @@ function PlanDetail({ ref, plan, input, plans, number, current, onSelect, onChoo
     {plan.timeline.length === 0 && <p className="compare-help">No payments or income are included in this 60-day period.</p>}
     {plan.warnings.length > 0 && <div className="compare-warnings"><strong>Check these assumptions</strong><ul>{plan.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></div>}
     <div className="compare-detail-actions">
-      <button className={`button ${isEligible(plan) ? 'primary' : 'secondary'}`} onClick={onChoose}>{current ? 'Continue with' : 'Choose'} Plan {n}<Icon name="arrow" size={16}/></button>
+      <button className={`button ${isEligible(plan) ? 'primary' : 'secondary'}`} disabled={previewOnly} onClick={onChoose}>{previewOnly ? 'Return to original dates to choose' : <>{current ? 'Continue with' : 'Choose'} Plan {n}</>}<Icon name="arrow" size={16}/></button>
     </div>
   </section>;
 }
-
