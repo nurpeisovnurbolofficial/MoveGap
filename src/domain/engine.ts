@@ -1,4 +1,5 @@
 import type { ComparisonResult, MoveInput, PaymentEvent, PlanResult, TimelineRow } from './types';
+import { getPaymentHistory, getActualCandidates } from './payments';
 
 const DAY = 86_400_000;
 const MAX_CENTS = 1_000_000_000;
@@ -54,6 +55,20 @@ export function validateInput(input: MoveInput): string[] {
     if (!isDate(event.date) || !isMoney(event.amountCents)) errors.push(`${event.label}: invalid date or amount.`);
     if (!['income', 'expense', 'refundable-deposit', 'deposit-refund'].includes(event.kind)) errors.push('Invalid event kind.');
     if (event.actual && (!isDate(event.actual.date) || !isMoney(event.actual.amountCents))) errors.push(`${event.label}: invalid actual payment.`);
+    if (event.actualLinks !== undefined) {
+      if (!event.actualLinks || typeof event.actualLinks !== 'object' || Array.isArray(event.actualLinks)) {
+        errors.push(`${event.label}: invalid payment relationships.`);
+        continue;
+      }
+      const links = Object.entries(event.actualLinks);
+      if (links.filter(([, relationship]) => relationship === 'same-payment').length > 1) errors.push(`${event.label}: link only one recorded payment as the same payment.`);
+      for (const [id, relationship] of links) {
+        const target = allEvents.find(e => e.id === id);
+        if (!target || target.id === event.id || target.kind !== event.kind
+          || !['same-payment', 'separate-payment'].includes(relationship)) errors.push(`${event.label}: invalid payment relationship.`);
+        if (event.actual && relationship === 'same-payment') errors.push(`${event.label}: two actual records cannot represent the same payment. Correct the duplicate actual first.`);
+      }
+    }
   }
   return [...new Set(errors)];
 }
@@ -65,6 +80,8 @@ export function calculatePlans(input: MoveInput): ComparisonResult {
     plans: [], rejected: [], cheapestPlanId: null, largestBufferPlanId: null, earliestPlanId: null,
   };
   if (errors.length) return result;
+  const history = getPaymentHistory(input);
+  const actuals = history.filter(row => row.event.actual);
   for (const housing of input.housingOptions) for (const moving of input.movingOptions) {
     if (moving.moveDate < housing.availableFrom || moving.moveDate > input.latestMoveDate) {
       result.rejected.push({ housingId: housing.id, movingId: moving.id,
@@ -73,7 +90,35 @@ export function calculatePlans(input: MoveInput): ComparisonResult {
     }
     const warnings: string[] = [];
     let needsConfirmation = housing.confirmation === 'proposed' || moving.confirmation === 'proposed';
-    const events = [...input.commonEvents, ...housing.events, ...moving.events].filter(event => {
+    const selectedIds = new Set([...input.commonEvents, ...housing.events, ...moving.events].map(e => e.id));
+    // Actuals are global history. Only future, unpaid obligations depend on the chosen options.
+    const selected = history.filter(row => selectedIds.has(row.event.id) && !row.event.actual);
+    const pending: PaymentEvent[] = [];
+    for (const row of selected) {
+      const event = row.event;
+      const candidates = getActualCandidates(input, row.owner, event);
+      for (const candidate of candidates) {
+        if (!event.actualLinks?.[candidate.event.id]) {
+          needsConfirmation = true;
+          warnings.push(`${event.label}: review the recorded ${candidate.event.label} in ${candidate.ownerLabel} in Move details. Both are counted until you confirm whether they are separate payments.`);
+        }
+      }
+      const sameId = Object.entries(event.actualLinks ?? {}).find(([, relation]) => relation === 'same-payment')?.[0];
+      const paid = sameId && actuals.find(a => a.event.id === sameId);
+      if (paid) {
+        warnings.push(`${event.label}: already covered by recorded ${paid.event.label} in ${paid.ownerLabel}; no second planned charge.`);
+      } else {
+        if (sameId) {
+          needsConfirmation = true;
+          warnings.push(`${event.label}: the linked actual was cleared. The planned charge is included again; review its relationship in Move details.`);
+        }
+        pending.push(event);
+      }
+    }
+    for (const row of actuals.filter(a => !selectedIds.has(a.event.id))) {
+      warnings.push(`${row.event.label}: recorded in ${row.ownerLabel}; kept in every plan, subject to the same date window.`);
+    }
+    const events = [...actuals.map(row => row.event), ...pending].filter(event => {
       if (event.kind === 'deposit-refund' && !event.actual) {
         warnings.push(`${event.label}: expected refund excluded until received.`); return false;
       }

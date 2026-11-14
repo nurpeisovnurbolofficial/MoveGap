@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { calculatePlans } from './domain/engine';
 import { createExample } from './domain/example';
+import { paymentRemovalReason } from './domain/payments';
 import type { MoveInput, PaymentEvent } from './domain/types';
 import { WorkspaceShell, type Page } from './components/WorkspaceShell';
 import { YourMovePage } from './pages/your-move/YourMovePage';
@@ -61,6 +62,10 @@ export default function App() {
     } catch { setMessage('The saved plan could not be removed. Your current move has been kept.'); }
   }
   function updateEvent(id: string, replacement?: PaymentEvent) {
+    if (!replacement) {
+      const reason = paymentRemovalReason(input, [id]);
+      if (reason) { setMessage(reason); return; }
+    }
     const update = (events: PaymentEvent[]) => replacement ? events.map(e => e.id === id ? replacement : e) : events.filter(e => e.id !== id);
     change({ ...input, commonEvents: update(input.commonEvents), housingOptions: input.housingOptions.map(h => ({ ...h, events: update(h.events) })), movingOptions: input.movingOptions.map(m => ({ ...m, events: update(m.events) })) }); setEditing(null);
   }
@@ -77,7 +82,7 @@ export default function App() {
   return <WorkspaceShell page={page} saved={Boolean(savedAt) && !dirty} dirty={dirty} hasPlan={Boolean(selected)} source={source} onSave={requestSave} onReset={() => setDialog('reset')} onHelp={() => setDialog('help')}>
     {message && <div className="workspace-message" role="status"><Icon name="info" size={18}/><span>{message}</span><button className="icon-button" aria-label="Dismiss message" onClick={() => setMessage(null)}><Icon name="close" size={17}/></button></div>}
     {page === 'overview' && <OverviewPage input={input} result={result} selected={selected} source={source} onEdit={() => navigate('move')} onCompare={() => navigate('compare')} onTrack={() => navigate('plan')}/>}
-    {page === 'move' && <YourMovePage input={input} onChange={change} onStartOwn={startOwnMove} source={source} onCompare={() => navigate('compare')} preview={result.plans[0]} errors={result.errors}/>}
+    {page === 'move' && <YourMovePage input={input} onChange={change} onStartOwn={startOwnMove} source={source} onCompare={() => navigate('compare')} onRecordActual={record} preview={result.plans[0]} errors={result.errors}/>}
     {page === 'compare' && <ComparePlansPage input={input} result={result} onBack={() => navigate('move')} onChoose={id => { setSelectedId(id); setDirty(true); navigate('plan'); }}/>}
     {page === 'plan' && <YourPlanPage input={input} plan={selected} onCompare={() => navigate('compare')} onSave={requestSave} onRecord={record} savedAt={savedAt} dirty={dirty}/>}
     {editing && <PaymentDialog key={`${editing.event.id}-${editing.actual}`} {...editing} onClose={() => setEditing(null)} onSave={event => updateEvent(event.id, event)} onDelete={() => updateEvent(editing.event.id)}/>}

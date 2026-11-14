@@ -1,7 +1,8 @@
 import { addDays } from '../../domain/engine';
-import type { MoveInput, PaymentEvent } from '../../domain/types';
+import type { MoveInput, PaymentEvent, PaymentOwner } from '../../domain/types';
+import { paymentRemovalReason } from '../../domain/payments';
 
-export type PaymentOwner = { kind: 'common' } | { kind: 'housing' | 'moving'; id: string };
+export type { PaymentOwner } from '../../domain/types';
 
 export function localToday(now = new Date()): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -35,10 +36,18 @@ export function putPayment(input: MoveInput, owner: PaymentOwner, event: Payment
 }
 
 export function removePayment(input: MoveInput, owner: PaymentOwner, id: string): MoveInput {
+  if (paymentRemovalReason(input, [id])) return input;
   const remove = (events: PaymentEvent[]) => events.filter(e => e.id !== id);
   if (owner.kind === 'common') return { ...input, commonEvents: remove(input.commonEvents) };
   if (owner.kind === 'housing') return { ...input, housingOptions: input.housingOptions.map(h => h.id === owner.id ? { ...h, events: remove(h.events) } : h) };
   return { ...input, movingOptions: input.movingOptions.map(m => m.id === owner.id ? { ...m, events: remove(m.events) } : m) };
+}
+
+export function removeOption(input: MoveInput, owner: Exclude<PaymentOwner, { kind: 'common' }>): MoveInput {
+  const option = (owner.kind === 'housing' ? input.housingOptions : input.movingOptions).find(o => o.id === owner.id);
+  if (!option || paymentRemovalReason(input, option.events.map(e => e.id))) return input;
+  return owner.kind === 'housing' ? { ...input, housingOptions: input.housingOptions.filter(o => o.id !== owner.id) }
+    : { ...input, movingOptions: input.movingOptions.filter(o => o.id !== owner.id) };
 }
 
 export function paymentTimingNote(event: PaymentEvent, startDate: string): string | null {
