@@ -1,0 +1,25 @@
+import { useState } from 'react';
+import type { ComparisonResult, MoveInput } from '../../domain/types';
+import { CashChart } from '../../components/CashChart';
+import { Icon, Panel } from '../../shared/ui';
+import { money, shortDate } from '../../shared/format';
+
+/** Aruzhan owns this page. All amounts come from the shared calculation result. */
+export function ComparePlansPage({ input, result, onChoose, onBack }: { input: MoveInput; result: ComparisonResult; onChoose: (id: string) => void; onBack: () => void }) {
+  const [focusedId, setFocusedId] = useState<string | null>(null);
+  const focused = result.plans.find(p => p.id === focusedId) ?? result.plans.find(p => p.id === result.cheapestPlanId) ?? result.plans[0];
+  const eligible = result.plans.filter(p => p.meetsReserve && !p.needsConfirmation).length;
+  return <><div className="page-heading"><span className="eyebrow">02 / COMPARE PLANS</span><h1>A clearer way to move.</h1><p>Compare the dates you can actually choose, and see what happens to your cash.</p></div>
+    {!focused ? <div className="empty-state"><Icon name="calendar" size={36}/><h2>No compatible plans yet.</h2><p>Check your amounts, housing availability and latest moving date.</p><button className="button primary" onClick={onBack}>Edit your move<Icon name="back" size={17}/></button></div> : <>
+      <div className={`comparison-insight ${eligible ? '' : 'warning'}`}><span className="insight-icon"><Icon name={eligible ? 'check' : 'info'}/></span><div><strong>{eligible ? `${eligible} ${eligible === 1 ? 'plan keeps' : 'plans keep'} your ${money(input.reserveCents)} reserve intact.` : 'None of these confirmed plans preserves your reserve.'}</strong><p>{eligible ? 'Expected deposit returns are excluded. Every payment below is included in the calculation.' : 'Check other confirmed dates or update your available cash before committing.'}</p></div><button className="text-button" onClick={onBack}>Edit inputs<Icon name="back" size={16}/></button></div>
+      <div className="comparison-grid">{result.plans.map((plan, index) => <article className={`plan-card ${plan.id === result.cheapestPlanId ? 'recommended' : ''} ${focused.id === plan.id ? 'focused' : ''}`} key={plan.id}>
+        <div className="plan-card-top"><span className="plan-number">OPTION {String(index + 1).padStart(2, '0')}</span><span className={`badge ${plan.needsConfirmation ? 'amber' : plan.meetsReserve ? 'green' : 'red'}`}>{plan.needsConfirmation ? 'Unconfirmed' : plan.meetsReserve ? 'Within reserve' : 'Below reserve'}</span></div>
+        <h2>{shortDate(plan.moveDate)}</h2><p className="plan-description">{input.housingOptions.find(h => h.id === plan.housingId)?.label} · {input.movingOptions.find(m => m.id === plan.movingId)?.label}</p>
+        <div className="plan-key-value"><span>Lowest cash balance</span><strong className={!plan.meetsReserve ? 'negative' : ''}>{money(plan.minBalanceCents)}</strong><small>{shortDate(plan.minBalanceDate)}</small></div>
+        <dl className="plan-facts"><div><dt>Nonrefundable payments</dt><dd>{money(plan.costCents)}</dd></div><div><dt>Deposit paid out</dt><dd>{money(plan.depositOutflowCents)}</dd></div><div><dt>Extra cash to keep reserve</dt><dd className={plan.gapToReserveCents ? 'negative' : ''}>{money(plan.gapToReserveCents)}</dd></div></dl>
+        <button className="preview-button" aria-pressed={focused.id === plan.id} onClick={() => setFocusedId(plan.id)}><Icon name="chart" size={16}/>{focused.id === plan.id ? 'Showing cash flow' : 'View cash flow'}</button><button className={`button full-width ${plan.id === result.cheapestPlanId ? 'primary' : 'secondary'}`} onClick={() => onChoose(plan.id)}>Choose this plan<Icon name="arrow" size={17}/></button>
+      </article>)}</div>
+      <Panel title="Follow the money" aside={<span className="badge blue">Move on {shortDate(focused.moveDate)}</span>}><p className="panel-intro">Your balance after each payment. The shaded area falls below your chosen reserve.</p><div className="chart-summary"><div><span>Lowest balance</span><strong className={!focused.meetsReserve ? 'negative' : ''}>{money(focused.minBalanceCents)}</strong></div><div><span>First day below reserve</span><strong>{focused.firstBelowReserveDate ? shortDate(focused.firstBelowReserveDate) : 'None in this plan'}</strong></div><div><span>Balance at day 60</span><strong>{money(focused.endingBalanceCents)}</strong></div></div><CashChart input={input} plan={focused}/></Panel>
+      <details className="assumptions"><summary><Icon name="info" size={17}/>What is included in these numbers?</summary><p>Only the payments you entered, within the same 60-day window. Refundable deposits reduce available cash but are separate from nonrefundable payments. Expenses are processed before income on the same day.</p><p>Moving dates never move your rent or deposit deadline automatically. An option requiring agreement is marked unconfirmed.</p>{focused.warnings.map((warning, index) => <p key={index}>{warning}</p>)}{result.rejected.length > 0 && <p>{result.rejected.length} incompatible combination(s) excluded because of availability or moving dates.</p>}</details>
+    </>}</>;
+}
