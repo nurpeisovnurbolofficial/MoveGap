@@ -3,6 +3,7 @@ import { createExample } from '../domain/example';
 import { calculatePlans } from '../domain/engine';
 import { createPlanBackup, parsePlanBackup, restorePlanBackup, BACKUP_PREFIX } from './backup';
 import { STORAGE_KEY } from './storage';
+import { DRAFT_KEY } from './draft';
 
 function memoryStorage(seed?: string) {
   const data = new Map<string, string>();
@@ -49,5 +50,13 @@ describe('manual plan backup', () => {
     expect(preserved.startsWith(BACKUP_PREFIX)).toBe(true);
     expect(storage.data.get(preserved)).toBe(original);
     expect(JSON.parse(storage.data.get(STORAGE_KEY)!).input.openingCashCents).toBe(200000);
+  });
+
+  it('refuses a v1-only restore when an autosaved v2 draft is active', () => {
+    const original = createPlanBackup(createExample(), null);
+    const storage = memoryStorage(original);
+    storage.data.set(DRAFT_KEY, 'active draft');
+    expect(() => restorePlanBackup(parsePlanBackup(original), storage, original)).toThrow(/draft controller/);
+    expect(storage.data.get(STORAGE_KEY)).toBe(original);
   });
 });

@@ -1,4 +1,5 @@
 import type { MoveInput, PaymentEvent } from '../domain/types';
+import { DRAFT_KEY } from './draft';
 import { parseSnapshot, STORAGE_KEY, type Snapshot } from './storage';
 
 export const MAX_BACKUP_BYTES = 500_000;
@@ -56,6 +57,8 @@ export function parsePlanBackup(raw: string): PlanBackupFile {
 export function restorePlanBackup(file: PlanBackupFile, storage: Pick<Storage, 'getItem' | 'setItem'>,
   expectedRaw: string | null, currentSnapshot?: Snapshot): string | null {
   const validated = parsePlanBackup(JSON.stringify(file));
+  if (storage.getItem(DRAFT_KEY) !== null)
+    throw new Error('An autosaved draft is active. Restore through the draft controller to keep both versions consistent.');
   if (storage.getItem(STORAGE_KEY) !== expectedRaw) throw new Error('Another tab changed this plan. Preview the file again before replacing it.');
   let preservedKey: string | null = null;
   if (expectedRaw !== null) {
