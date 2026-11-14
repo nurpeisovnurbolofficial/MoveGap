@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import type { HousingOption, MoveInput, MovingOption, PaymentEvent, PlanResult } from '../../domain/types';
 import { addDays } from '../../domain/engine';
+import { getActualCandidates, paymentRemovalReason } from '../../domain/payments';
 import { CashChart } from '../../components/CashChart';
 import { DateField, Icon, Modal, MoneyField, Panel } from '../../shared/ui';
 import { money, shortDate } from '../../shared/format';
 import { OptionEditor, type OptionDraft } from './OptionEditor';
 import { PaymentEditor } from './PaymentEditor';
-import { localToday, paymentTimingNote, putPayment, removePayment, validDate, validMoney, type PaymentOwner } from './inputHelpers';
+import { localToday, paymentTimingNote, putPayment, removePayment, removeOption, validDate, validMoney, type PaymentOwner } from './inputHelpers';
 import './YourMovePage.css';
 
 type OptionKind = 'housing' | 'moving';
@@ -14,10 +15,11 @@ type Option = HousingOption | MovingOption;
 type PaymentDraft = { owner: PaymentOwner; event: PaymentEvent; isNew: boolean; containerLabel: string };
 type EditingOption = { kind: OptionKind; option?: Option };
 
-/** Nurbol owns this page. The shared MoveInput contract stays unchanged. */
-export function YourMovePage({ input, onChange, onStartOwn, source, onCompare, preview, errors }: {
+/** Nurbol owns input and explicit relationships between alternative payments. */
+export function YourMovePage({ input, onChange, onStartOwn, source, onCompare, onRecordActual, preview, errors }: {
   input: MoveInput; onChange: (input: MoveInput) => void; onStartOwn: () => void;
   source: 'example' | 'own' | 'saved'; onCompare: () => void; preview?: PlanResult; errors: string[];
+  onRecordActual: (eventId: string) => void;
 }) {
   const [payment, setPayment] = useState<PaymentDraft | null>(null);
   const [editingOption, setEditingOption] = useState<EditingOption | null>(null);
@@ -31,6 +33,7 @@ export function YourMovePage({ input, onChange, onStartOwn, source, onCompare, p
   const canAddPayment = eventCount < 300;
   const compatible = input.housingOptions.some(h => input.movingOptions.some(m => validDate(m.moveDate) && m.moveDate >= h.availableFrom && m.moveDate <= input.latestMoveDate));
   const cashText = (amount: number) => validMoney(amount) ? money(amount) : '—';
+  const optionRemovalReason = removingOption ? paymentRemovalReason(input, removingOption.option.events.map(event => event.id)) : null;
 
   function addPayment(owner: PaymentOwner, containerLabel: string, kind: PaymentEvent['kind'] = 'expense', date = input.startDate) {
     if (!canAddPayment) { setNotice('This plan can contain up to 300 payments. Remove an entry before adding another.'); return; }
@@ -38,7 +41,8 @@ export function YourMovePage({ input, onChange, onStartOwn, source, onCompare, p
   }
 
   function eventRow(event: PaymentEvent, owner: PaymentOwner, containerLabel: string) {
-    const timing = paymentTimingNote(event, input.startDate);
+    const reviewNeeded = !event.actual && getActualCandidates(input, owner, event).some(row => !event.actualLinks?.[row.event.id]);
+    const timing = reviewNeeded ? 'Review overlap with recorded payments before relying on this option.' : paymentTimingNote(event, input.startDate);
     return <button key={event.id} className="event-row" onClick={() => setPayment({ event, owner, containerLabel, isNew: false })}>
       <span className={`event-icon ${event.kind === 'income' ? 'income' : ''}`}><Icon name={event.kind === 'income' ? 'wallet' : event.kind === 'deposit-refund' ? 'refresh' : 'calendar'}/></span>
       <span className="event-description"><strong>{event.label}</strong><small>{shortDate(event.actual?.date ?? event.date)} · {event.actual ? 'Actual recorded' : event.kind === 'income' ? 'Income' : event.kind === 'refundable-deposit' ? 'Refundable deposit' : event.kind === 'deposit-refund' ? 'Expected return' : 'Expense'}</small>{timing && <small className="move-timing-note">{timing}</small>}</span>
@@ -113,9 +117,9 @@ export function YourMovePage({ input, onChange, onStartOwn, source, onCompare, p
       <section className="panel preview-panel"><div className="panel-heading"><h2>First option at a glance</h2><Icon name="chart" size={18}/></div>{preview ? <><span className="caption">LOWEST CASH BALANCE</span><div className={`preview-value ${preview.minBalanceCents < input.reserveCents ? 'negative' : ''}`}>{money(preview.minBalanceCents)}</div><span className="field-hint">On {shortDate(preview.minBalanceDate)}, based on your entries.</span>{preview.needsConfirmation && <span className="badge amber move-preview-status">Conditions still need confirmation</span>}<CashChart input={input} plan={preview} compact/></> : <div className="move-preview-empty"><Icon name="chart" size={27}/><p>Add your cash, one housing option and one moving option with their payments to see the forecast.</p></div>}</section>
       <div className="note-block"><Icon name="info"/><div><strong>A deposit is not available cash.</strong><p>Your old deposit stays out of the forecast until you record its actual return.</p></div></div><p className="scope-note">{source === 'example' ? 'The example uses fictional payments. Start your own move to remove them all. ' : ''}Include every payment in the 60-day window. Missing bills are not estimated automatically.</p>
     </aside></div>
-    {payment && <PaymentEditor key={payment.event.id} {...payment} startDate={input.startDate} allowedKinds={payment.owner.kind === 'common' ? ['expense', 'income', 'refundable-deposit', 'deposit-refund'] : payment.owner.kind === 'housing' ? ['expense', 'refundable-deposit'] : ['expense']} onClose={() => setPayment(null)} onSave={event => { onChange(putPayment(input, payment.owner, event)); setPayment(null); setNotice('Payment updated in your draft. Save your chosen plan to keep changes after closing.'); }} onRemove={() => { onChange(removePayment(input, payment.owner, payment.event.id)); setPayment(null); setNotice('Payment removed. Your forecast has been updated.'); }}/>}
+    {payment && <PaymentEditor key={payment.event.id} {...payment} input={input} onEditActual={() => { const eventId = payment.event.id; setPayment(null); onRecordActual(eventId); }} startDate={input.startDate} allowedKinds={payment.owner.kind === 'common' ? ['expense', 'income', 'refundable-deposit', 'deposit-refund'] : payment.owner.kind === 'housing' ? ['expense', 'refundable-deposit'] : ['expense']} onClose={() => setPayment(null)} onSave={event => { onChange(putPayment(input, payment.owner, event)); setPayment(null); setNotice('Payment updated in your draft. Save your chosen plan to keep changes after closing.'); }} onRemove={() => { onChange(removePayment(input, payment.owner, payment.event.id)); setPayment(null); setNotice('Payment removed. Your forecast has been updated.'); }}/>}
     {editingOption && <OptionEditor kind={editingOption.kind} isNew={!editingOption.option} startDate={input.startDate} latestMoveDate={input.latestMoveDate} initial={editingOption.option ? { label: editingOption.option.label, confirmation: editingOption.option.confirmation, date: 'availableFrom' in editingOption.option ? editingOption.option.availableFrom : editingOption.option.moveDate } : { label: '', confirmation: 'proposed', date: validDate(input.latestMoveDate) ? input.latestMoveDate : localToday() }} onClose={() => setEditingOption(null)} onSave={saveOption}/>}
-    {removingOption && <Modal title={`Remove ${removingOption.option.label}?`} onClose={() => setRemovingOption(null)}><p className="modal-intro">This removes the option and its {removingOption.option.events.length} payment entries, including any recorded actual amounts. Plans using this option will no longer be available.</p><div className="modal-actions"><button className="button secondary" onClick={() => setRemovingOption(null)}>Keep option</button><button className="button move-danger-button" onClick={() => { onChange(removingOption.kind === 'housing' ? { ...input, housingOptions: input.housingOptions.filter(h => h.id !== removingOption.option.id) } : { ...input, movingOptions: input.movingOptions.filter(m => m.id !== removingOption.option.id) }); setRemovingOption(null); setNotice('Option removed. The remaining combinations have been recalculated.'); }}>Remove option</button></div></Modal>}
+    {removingOption && <Modal title={`Remove ${removingOption.option.label}?`} onClose={() => setRemovingOption(null)}><p className="modal-intro">{optionRemovalReason ?? `This removes the option and its ${removingOption.option.events.length} unpaid entries. Plans using this option will no longer be available.`}</p><div className="modal-actions"><button className="button secondary" onClick={() => setRemovingOption(null)}>Keep option</button>{!optionRemovalReason && <button className="button move-danger-button" onClick={() => { onChange(removeOption(input, { kind: removingOption.kind, id: removingOption.option.id })); setRemovingOption(null); setNotice('Option removed. The remaining combinations have been recalculated.'); }}>Remove option</button>}</div></Modal>}
     {startingOwn && <Modal title="Start your own move?" onClose={() => setStartingOwn(false)}><p className="modal-intro">This clears the current entries and any MoveGap plan saved in this browser. You will start with no example payments or options. Today starts the new 60-day window; you can change it.</p><div className="modal-actions"><button className="button secondary" onClick={() => setStartingOwn(false)}>Keep current move</button><button className="button primary" onClick={() => { setStartingOwn(false); setTouched({}); setNotice(''); onStartOwn(); }}>Start with a clean form</button></div></Modal>}
   </>;
 }

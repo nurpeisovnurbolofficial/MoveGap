@@ -57,3 +57,9 @@ input[aria-invalid=true] { border-color: #ba4b4b; background: #fffafa; }
   .move-option-card .badge { font-size: 8px; }
   .move-editor-context { font-size: 12px; }
 }
+
+.move-payment-links { border:1px solid var(--line); border-radius:8px; padding:16px; margin:16px 0; min-width:0; }
+.move-payment-links legend { font-weight:600; padding-inline:6px; }
+.move-payment-links > p { font-size:13px; line-height:1.6; margin-bottom:12px; }
+.move-payment-links .field { margin-top:12px; overflow-wrap:anywhere; }
+.move-payment-links select { min-width:0; width:100%; }

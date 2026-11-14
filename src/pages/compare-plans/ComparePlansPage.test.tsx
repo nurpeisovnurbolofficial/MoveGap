@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { calculatePlans } from '../../domain/engine';
 import { createExample } from '../../domain/example';
+import { cloudPlanDocumentExample } from '../../contracts/cloudPlan.examples';
 import type { MoveInput } from '../../domain/types';
 import { ComparePlansPage } from './ComparePlansPage';
 import { closestPlan, criticalDay, highlights, optionRows, unconfirmedItems } from './planInsights';
@@ -129,6 +130,23 @@ describe('Compare Plans explanations', () => {
     expect(count(html, 'Your current plan')).toBe(1);
     expect(count(html, 'Continue with this plan')).toBe(1);
     expect(html).toContain('id="compare-detail-title">Plan 1');
+  });
+
+  it('keeps an actual payment from a previous option in the chosen plan detail', () => {
+    const { input, selectedId } = cloudPlanDocumentExample();
+    const detail = text(render(input, selectedId).split('id="compare-detail"')[1]);
+    expect(detail).toContain('Cash on day 60$350');
+    expect(detail).toContain('Moving serviceActual');
+    expect(detail).toContain('−$900');
+    expect(detail).toContain('recorded in November 25 move; kept in every plan');
+  });
+
+  it('does not charge a linked payment again after changing options', () => {
+    const { input, selectedId } = cloudPlanDocumentExample();
+    input.movingOptions[1].events[0].actualLinks = { 'truck-early': 'same-payment' };
+    const detail = text(render(input, selectedId).split('id="compare-detail"')[1]);
+    expect(detail).toContain('Cash on day 60$1,050');
+    expect(detail).toContain('no second planned charge');
   });
 });
 
