@@ -1,0 +1,6 @@
+.upcoming-payment { display:flex; justify-content:space-between; align-items:center; gap:16px; border:1px solid #dfe6fb; border-radius:10px; padding:16px; }
+.upcoming-payment.is-overdue { border-color:#edb8a9; background:#fff9f6; }
+.upcoming-payment strong,.upcoming-payment span,.upcoming-payment small { display:block; }
+.upcoming-payment strong { margin:7px 0; font-size:16px; }
+.upcoming-payment small { color:var(--p-muted); margin-top:5px; font-size:11px; }
+@media(max-width:480px) { .upcoming-payment { align-items:flex-start; flex-direction:column; } }

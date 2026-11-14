@@ -1,0 +1,24 @@
+﻿.mg-cash-chart { width:100%; min-width:0; margin-top:12px; color:#141820; }
+.mg-cash-chart svg { display:block; width:100%; height:auto; overflow:visible; touch-action:pan-y; cursor:crosshair; }
+.mg-cash-chart :is(svg,button,select):focus-visible { outline:3px solid #2639cc; outline-offset:3px; }
+.mg-cash-chart .mg-chart-label { font:12px/1.4 var(--font-text,system-ui,sans-serif); fill:#505966; }
+.mg-chart-help { font-size:12px; line-height:1.6; color:#505966; margin:0 0 8px; }
+.mg-chart-below { fill:#fbeeed; }
+.mg-chart-grid { stroke:#e0e4eb; stroke-width:1; }
+.mg-chart-zero { stroke:#747b87; stroke-width:1.4; }
+.mg-chart-reserve { stroke:#466450; stroke-width:1.5; stroke-dasharray:5 5; }
+.mg-chart-line { stroke:#2639cc; stroke-width:2.5; fill:none; stroke-linejoin:round; }
+.mg-chart-minimum { fill:#a63838; stroke:white; stroke-width:1.5; }
+.mg-chart-selected { fill:transparent; stroke:#1d2640; stroke-width:2; }
+.mg-chart-legend { display:flex; flex-wrap:wrap; justify-content:center; gap:8px 16px; font-size:12px; line-height:1.5; color:#505966; margin:12px 0; }
+.mg-chart-legend span { display:flex; align-items:center; gap:7px; }
+.mg-chart-line-key { width:15px; border-top:2px solid #2639cc; }
+.mg-chart-reserve-key { width:15px; border-top:2px dashed #466450; }
+.mg-chart-minimum-key { width:8px; height:8px; transform:rotate(45deg); background:#a63838; margin-inline:3px; }
+.mg-chart-controls { display:grid; gap:8px; font-size:12px; margin-top:16px; }
+.mg-chart-controls select { width:100%; min-width:0; font-size:13px; }
+.mg-chart-step { display:flex; gap:8px; }
+.mg-chart-step button { background:white; border:1px solid #cdd2dc; border-radius:5px; min-height:40px; padding:8px 14px; font-size:13px; }
+.mg-chart-step button:disabled { opacity:1; color:#727780; background:#f2f3f5; }
+.mg-chart-detail { padding:12px; border:1px solid #dfe3e9; border-radius:6px; background:#f8f9fb; margin-top:12px; font-size:13px; line-height:1.6; overflow-wrap:anywhere; }
+.mg-chart-detail p { margin:5px 0 0; color:#505966; }
