@@ -1,4 +1,10 @@
 node_modules/
+dist/
+.codex-attachments/
+.netlify/
+.DS_Store
+*.log
+*.tsbuildinfo
 .git/
 .agents/
 .vercel/
