@@ -209,3 +209,61 @@ describe('cloud transport and local binding', () => {
     expect(readCloudLocal(local)?.localRevision).toBe(1);
   });
 });
+
+it.each(['create', 'update'] as const)('serializes rapid %s saves and retries the exact persisted request after a lost response', async operation => {
+  const local = storage(); const binding = new CloudLocalStore(local, locks()); const draft = bridge();
+  const initial = record();
+  if (operation === 'update') {
+    await binding.write({ access: { planId: initial.planId, secret: generateCloudSecret() },
+      metadata: { planId: initial.planId, revision: 1, savedAt: initial.savedAt, expiresAt: initial.expiresAt },
+      acknowledged: initial.document }, null);
+    const changed = cloudPlanDocumentExample(); changed.input.openingCashCents += 10000; draft.change(changed);
+  }
+  const submitted = structuredClone(draft.adapter.completeDocument()!);
+  const response = { ...initial, revision: operation === 'create' ? 1 : 2, document: submitted };
+  const mutation = vi.fn().mockResolvedValueOnce({ ok: false, error: { code: 'NETWORK_ERROR', outcome: 'unknown' } })
+    .mockResolvedValueOnce({ ok: true, value: response });
+  const coordinator = new CloudPlanCoordinator({ [operation]: mutation } as unknown as CloudPlanClient, binding, draft.adapter, () => {}, true);
+  const saving = coordinator.save();
+  expect(coordinator.panelState.canSave).toBe(false);
+  await coordinator.save();
+  await saving;
+  expect(mutation).toHaveBeenCalledOnce();
+  const [access, sent] = mutation.mock.calls[0];
+  expect(readCloudLocal(local)?.pending?.requestId).toBe(sent.requestId);
+  if (operation === 'create') expect(readCloudLocal(local)?.pending?.secret).toBe(access);
+  // A reload must recover the original request, not generate a different plan/key.
+  const reloaded = new CloudPlanCoordinator({ [operation]: mutation } as unknown as CloudPlanClient,
+    new CloudLocalStore(local, locks()), draft.adapter, () => {}, true);
+  await reloaded.retry();
+  expect(mutation.mock.calls[1]).toEqual(mutation.mock.calls[0]);
+  expect(reloaded.panelState.cloud.kind).toBe('saved');
+  expect(readCloudLocal(local)?.pending).toBeNull();
+});
+
+it.each(['remove', 'rotateKey'] as const)('serializes repeated %s clicks before the pending request is persisted', async operation => {
+  const local = storage(); const binding = new CloudLocalStore(local, locks()); const draft = bridge();
+  const initial = record();
+  await binding.write({ access: { planId: initial.planId, secret: generateCloudSecret() },
+    metadata: { planId: initial.planId, revision: 1, savedAt: initial.savedAt, expiresAt: initial.expiresAt },
+    acknowledged: initial.document }, null);
+  const mutation = vi.fn().mockResolvedValue({ ok: false, error: { code: 'NETWORK_ERROR', outcome: 'unknown' } });
+  const coordinator = new CloudPlanCoordinator({ [operation]: mutation } as unknown as CloudPlanClient, binding, draft.adapter, () => {}, true);
+  const first = coordinator[operation]();
+  await coordinator[operation](); await first;
+  expect(mutation).toHaveBeenCalledOnce();
+  const sent = mutation.mock.calls[0][operation === 'remove' ? 1 : 2];
+  expect(readCloudLocal(local)?.pending?.requestId).toBe(sent.requestId);
+  await coordinator.retry();
+  expect(mutation.mock.calls[1]).toEqual(mutation.mock.calls[0]);
+});
+
+it('releases the operation lock when protecting the local draft fails', async () => {
+  const local = storage(); const binding = new CloudLocalStore(local, locks()); const draft = bridge();
+  vi.mocked(draft.adapter.saveCurrentDraft).mockRejectedValueOnce(new Error('Storage unavailable'));
+  const create = vi.fn().mockResolvedValue({ ok: true, value: record() });
+  const coordinator = new CloudPlanCoordinator({ create } as unknown as CloudPlanClient, binding, draft.adapter, () => {}, true);
+  await coordinator.save(); expect(create).not.toHaveBeenCalled();
+  await coordinator.retry(); expect(create).toHaveBeenCalledOnce();
+  expect(coordinator.panelState.cloud.kind).toBe('saved');
+});
