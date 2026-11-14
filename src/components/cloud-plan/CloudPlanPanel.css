@@ -1,0 +1,42 @@
+﻿.cloud-plan-panel { background:#fff; border:1px solid #d8dee7; border-radius:10px; padding:24px; font:14px/1.65 var(--font-text,system-ui,sans-serif); color:#151a23; min-width:0; }
+.cloud-plan-panel h2 { font-size:22px; line-height:1.3; margin:0 0 8px; }
+.cloud-plan-panel p { margin:7px 0 0; }
+.cloud-plan-panel header > p { color:#505966; }
+.cloud-plan-panel :is(button,input,summary):focus-visible,.cloud-plan-panel:focus-visible { outline:3px solid #2639cc; outline-offset:3px; }
+.cloud-plan-panel button,.cloud-plan-confirm button { min-height:44px; border:1px solid #bcc5d4; border-radius:6px; background:#fff; color:#182035; padding:10px 14px; font:inherit; font-size:14px; line-height:1.4; cursor:pointer; }
+.cloud-plan-panel button:disabled,.cloud-plan-confirm button:disabled { cursor:not-allowed; background:#f3f4f6; color:#666e7c; opacity:1; }
+.cloud-plan-panel .cloud-primary,.cloud-plan-confirm .cloud-primary { color:#fff; background:#2639cc; border-color:#2639cc; }
+.cloud-plan-panel .cloud-primary:disabled { background:#edf0f6; border-color:#cdd2dc; color:#666e7c; }
+.cloud-plan-panel .cloud-danger,.cloud-plan-confirm .cloud-danger { color:#97302f; border-color:#be8584; }
+.cloud-local-status,.cloud-online-status { padding:14px; border-radius:7px; border:1px solid #dfe3e9; background:#f8f9fb; margin-top:18px; }
+.cloud-is-error { background:#fff8ec; border-color:#dfc58f; }
+.cloud-saved-meta { display:flex; flex-wrap:wrap; gap:16px 32px; margin:16px 0; }
+.cloud-saved-meta dt { color:#505966; font-size:12px; }
+.cloud-saved-meta dd { margin:3px 0 0; font-size:13px; }
+.cloud-plan-panel .cloud-privacy { margin:18px 0; padding-left:12px; border-left:3px solid #a2adc6; color:#505966; font-size:13px; }
+.cloud-main-actions,.cloud-conflict-actions { display:flex; flex-wrap:wrap; gap:10px; margin:16px 0 10px; }
+.cloud-conflict-actions p { flex-basis:100%; }
+.cloud-plan-panel .cloud-help { color:#505966; font-size:13px; }
+.cloud-plan-panel .cloud-copy-status { margin-top:14px; font-weight:600; }
+.cloud-manual-copy { margin-block:14px; }
+.cloud-plan-panel label { display:block; margin:12px 0 6px; font-size:13px; font-weight:600; }
+.cloud-plan-panel input { box-sizing:border-box; width:100%; min-width:0; border:1px solid #9da8bc; border-radius:5px; background:#fff; color:#151a23; padding:10px; font:inherit; font-size:14px; min-height:44px; }
+.cloud-plan-panel input:disabled { background:#f3f4f6; }
+.cloud-manual-copy input { margin-bottom:10px; }
+.cloud-open,.cloud-manage { border-top:1px solid #dfe3e9; padding-top:8px; margin-top:18px; }
+.cloud-plan-panel summary { cursor:pointer; padding:10px 0; font-weight:600; min-height:44px; box-sizing:border-box; }
+.cloud-open button { margin-top:12px; }
+.cloud-manage button { margin:12px 10px 0 0; }
+.cloud-plan-confirm { box-sizing:border-box; padding:24px; width:min(94vw,500px); max-height:90dvh; overflow-y:auto; border:1px solid #cdd2dc; border-radius:10px; background:#fff; color:#151a23; font:14px/1.65 var(--font-text,system-ui,sans-serif); }
+.cloud-plan-confirm::backdrop { background:#10162680; }
+.cloud-plan-confirm h2 { margin:0 0 12px; font-size:21px; line-height:1.3; }
+.cloud-plan-confirm p { margin:0; }
+.cloud-plan-confirm-actions { display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end; margin-top:24px; }
+.cloud-plan-confirm :focus-visible { outline:3px solid #2639cc; outline-offset:3px; }
+@media(max-width:480px) {
+  .cloud-plan-panel { padding:18px 14px; }
+  .cloud-main-actions,.cloud-conflict-actions { flex-direction:column; }
+  .cloud-main-actions button,.cloud-conflict-actions button { width:100%; }
+  .cloud-plan-confirm { padding:20px 16px; }
+  .cloud-plan-confirm-actions { flex-direction:column-reverse; }
+}
