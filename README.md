@@ -4,7 +4,11 @@ Money-track prototype for Business Cup 2.0. Compare entered housing and moving o
 
 ## Current status
 
-Three-page working scaffold, **not a submission-ready product**. Includes editable payments and option dates, real cash-flow comparisons, a selected payment plan, actual amounts, validated browser persistence and an explicit demo Move Pass. No payments are collected. Example data is fictional and runs through the real engine. No bank or legal integrations. Public production hosting and the pitch remain separate deliverables.
+Working MVP with four independently accessible sections: Overview, Move details, Compare options and Payment tracker. Includes creating and editing offers and payments, real cash-flow comparisons, a selected payment plan, actual amounts, validated browser persistence and an explicit demo Move Pass. No payments are collected. Example data is fictional and runs through the real engine. No bank or legal integrations. The pitch and final submission remain separate deliverables.
+
+Production: https://movegap.vercel.app. Local changes appear there only after publication.
+
+Overview shows the selected plan or a clearly labelled preview of the first entered option. Navigation is not a wizard: all sections are accessible at any time, and switching sections keeps the same in-memory inputs. Use Save plan to retain a valid selected plan after reloading. The original `#/move`, `#/compare` and `#/plan` links remain supported; `#/overview` opens the summary.
 
 ## Run
 
@@ -21,7 +25,7 @@ On Windows PowerShell use `pnpm.cmd` if PowerShell blocks the command shim. The 
 
 ## Source structure
 
-The three pages live in `src/pages/`: input, comparison and the selected plan. Shared components live in `src/components/`, browser persistence in `src/state/`, and calculation logic in `src/domain/`.
+The four views live in `src/pages/`: overview, input, comparison and the selected plan. Team responsibilities follow functional blocks, not a mandatory page sequence. Shared components live in `src/components/`, browser persistence in `src/state/`, and calculation logic in `src/domain/`.
 
 Shared contract: [types](src/domain/types.ts), [engine](src/domain/engine.ts), [fictional inputs](src/domain/example.ts).
 

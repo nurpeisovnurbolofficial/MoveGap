@@ -1,4 +1,4 @@
-import { useRef, useState, type Ref } from 'react';
+﻿import { useRef, useState, type Ref } from 'react';
 import type { ComparisonResult, MoveInput, PlanResult } from '../../domain/types';
 import { CashChart } from '../../components/CashChart';
 import { Icon } from '../../shared/ui';
@@ -51,7 +51,7 @@ export function ComparePlansPage({ input, result, onChoose, onBack, currentPlanI
     card?.scrollIntoView({ block: 'start', behavior: smooth() ? 'smooth' : 'auto' });
   }
 
-  const heading = <div className="page-heading"><span className="eyebrow">02 / COMPARE PLANS</span><h1>Compare your moving plans.</h1><p>See which dates work with the money you have — and exactly which payment causes trouble.</p></div>;
+  const heading = <div className="page-heading"><h1>Compare your moving options.</h1><p>See which dates work with the money you have — and exactly which payment causes trouble.</p></div>;
 
   if (result.errors.length > 0) {
     return <div className="compare-plans-page">{heading}
@@ -318,3 +318,4 @@ function PlanDetail({ ref, plan, input, plans, number, current, onSelect, onChoo
     </div>
   </section>;
 }
+
