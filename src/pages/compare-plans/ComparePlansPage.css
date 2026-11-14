@@ -1,30 +1,65 @@
-.compare-plans-page .compare-highlights { display:flex; flex-wrap:wrap; gap:6px; margin:12px 0; }
-.compare-plans-page .compare-dates { margin-block:12px; }
-.compare-plans-page .compare-payments { border-block:1px solid var(--line); padding:12px 0; margin-bottom:12px; }
-.compare-plans-page .compare-payments summary { cursor:pointer; font-weight:600; min-height:28px; }
-.compare-plans-page .compare-payments p,
-.compare-plans-page .compare-critical p { color:var(--p-muted); font-size:12px; margin-top:10px; }
-.compare-plans-page .compare-payments ul,
-.compare-plans-page .compare-critical ol { list-style:none; padding:0; margin:12px 0; }
-.compare-plans-page .compare-payments li,
-.compare-plans-page .compare-critical li { display:flex; justify-content:space-between; gap:16px; padding:10px 0; border-bottom:1px solid var(--line); font-size:12px; }
-.compare-plans-page li small { display:block; color:var(--p-muted); margin-top:4px; }
-.compare-plans-page li > span:first-child { min-width:0; overflow-wrap:anywhere; }
-.compare-plans-page .compare-payments li > strong { flex-shrink:0; }
-.compare-plans-page .compare-critical { margin-top:20px; border:1px solid var(--line); border-radius:8px; padding:18px; background:#f8f9fb; }
-.compare-plans-page .compare-critical li > span:last-child { flex-shrink:0; text-align:right; color:var(--p-muted); }
-.compare-plans-page .compare-critical li strong { display:block; color:var(--p-ink); margin-top:4px; }
+﻿.compare-plans-page { --p-muted:#505966; }
+.compare-plans-page :is(button,summary,[tabindex]):focus-visible { outline:3px solid #1f2de6; outline-offset:4px; }
+.compare-plans-page .comparison-insight { align-items:start; }
+.compare-plans-page .comparison-insight strong { font-size:16px; font-weight:600; }
+.compare-plans-page .comparison-insight p { font-size:13px; line-height:1.6; margin-top:7px; }
+.compare-plans-page .comparison-insight > div { min-width:0; flex:1; }
+.compare-plans-page .comparison-insight > button { flex-shrink:0; }
+.compare-plans-page .comparison-grid { align-items:start; grid-template-columns:repeat(auto-fit,minmax(min(100%,265px),1fr)); }
+.compare-plans-page .plan-card { min-width:0; overflow-wrap:anywhere; padding:22px; }
+.compare-plans-page .plan-card-top { flex-wrap:wrap; margin-bottom:16px; }
+.compare-plans-page .plan-number { font-size:11px; }
+.compare-plans-page .plan-card h2 { font-size:25px; letter-spacing:-.5px; }
+.compare-plans-page .plan-description { font-size:13px; line-height:1.6; min-height:0; }
+.compare-plans-page .badge { font-size:11px; white-space:normal; }
+.compare-plans-page .badge.green { color:#20553e; background:#e9f3ed; }
+.compare-plans-page .badge.blue { color:#2638a7; background:#edf0ff; }
+.compare-plans-page .badge.amber { color:#705014; background:#fff1d4; }
+.compare-plans-page .badge.red { color:#963333; background:#fbeeed; }
+.compare-plans-page .compare-highlights { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+.compare-plans-page .compare-highlights:empty { display:none; }
+.compare-plans-page .plan-key-value { padding:20px 0 12px; }
+.compare-plans-page .plan-key-value > span,
+.compare-plans-page .plan-key-value small { font-size:13px; }
+.compare-plans-page .plan-key-value > strong { font-size:30px; }
+.compare-plans-page .compare-outcome { font-size:14px; line-height:1.6; margin-bottom:16px; }
+.compare-plans-page .compare-payments { border-block:1px solid var(--line); margin-bottom:18px; }
+.compare-plans-page .compare-payments summary { cursor:pointer; font-size:13px; font-weight:600; padding:14px 0; min-height:48px; }
+.compare-plans-page .compare-detail-body { padding-bottom:16px; }
+.compare-plans-page .compare-detail-body p { font-size:13px; line-height:1.65; margin-bottom:14px; }
+.compare-plans-page .plan-facts { margin:16px 0; font-size:13px; }
+.compare-plans-page .plan-facts div { align-items:start; }
+.compare-plans-page .plan-facts dd { font-size:13px; }
+.compare-plans-page .compare-events { list-style:none; padding:0; margin:0; }
+.compare-plans-page .compare-events li { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); font-size:13px; }
+.compare-plans-page .compare-events li > div:first-child { min-width:0; overflow-wrap:anywhere; }
+.compare-plans-page .compare-events li > div:last-child { text-align:right; }
+.compare-plans-page .compare-events small { display:block; color:var(--p-muted); font-size:12px; margin-top:4px; }
+.compare-plans-page .compare-lowest-event { border-top:2px solid #69718a; }
+.compare-plans-page .compare-events .compare-lowest-label { color:#2638a7; font-weight:600; }
+.compare-plans-page .compare-warnings { margin-top:16px; font-size:13px; }
+.compare-plans-page .compare-warnings ul { padding-left:18px; margin-bottom:0; }
+.compare-plans-page .compare-warnings li { margin-top:8px; }
+.compare-plans-page .compare-card-actions .button { min-height:48px; font-size:14px; }
+.compare-plans-page .preview-button { font-size:13px; min-height:44px; margin-bottom:0; }
+.compare-plans-page .compare-cost-note { color:var(--p-muted); font-size:13px; line-height:1.65; margin:0 0 24px; }
+.compare-plans-page .compare-chart-section { scroll-margin-top:20px; border-radius:8px; }
+.compare-plans-page .compare-chart-help { color:var(--p-muted); font-size:13px; line-height:1.65; margin-top:12px; }
 .compare-plans-page .compare-chart-scroll { overflow-x:auto; }
-.compare-plans-page .plan-card { min-width:0; overflow-wrap:anywhere; }
-.compare-plans-page .chart-summary { flex-wrap:wrap; }
-.compare-plans-page .compare-cost-note { color:var(--p-muted); margin:0 0 24px; }
+.compare-plans-page .compare-scroll-hint { display:none; }
+.compare-plans-page .assumptions summary { width:auto; }
+.compare-plans-page .assumptions :is(summary,p,li) { font-size:13px; }
+.compare-plans-page .assumptions li { margin-bottom:8px; }
+.compare-plans-page .compare-errors { text-align:left; padding-left:20px; margin-block:18px; }
+.compare-plans-page .empty-state p { margin-bottom:20px; }
 @media (max-width:600px) {
+  .compare-plans-page .compare-scroll-hint { display:block; color:var(--p-muted); font-size:13px; margin-top:12px; }
   .compare-plans-page .cash-chart { min-width:560px; }
-  .compare-plans-page .compare-critical { padding:14px; }
-  .compare-plans-page .plan-card-top { flex-wrap:wrap; }
-  .compare-plans-page .comparison-insight { display:grid; grid-template-columns:32px minmax(0,1fr); align-items:start; }
-  .compare-plans-page .comparison-insight > div { min-width:0; }
-  .compare-plans-page .comparison-insight > .text-button { grid-column:2; margin-left:0; justify-self:start; }
+  .compare-plans-page .comparison-insight { display:grid; grid-template-columns:32px minmax(0,1fr); gap:12px; padding:16px; }
+  .compare-plans-page .comparison-insight > button { grid-column:1/-1; width:100%; }
+  .compare-plans-page .comparison-grid { grid-template-columns:minmax(0,1fr); }
+  .compare-plans-page .plan-card { padding:20px 16px; }
   .compare-plans-page .panel-heading { flex-wrap:wrap; }
-  .compare-plans-page .compare-highlights .badge { white-space:normal; }
+  .compare-plans-page .compare-events li { grid-template-columns:minmax(0,1fr); gap:6px; }
+  .compare-plans-page .compare-events li > div:last-child { display:flex; align-items:baseline; justify-content:space-between; gap:8px; text-align:left; }
 }
