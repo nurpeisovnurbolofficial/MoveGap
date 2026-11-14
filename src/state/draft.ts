@@ -22,6 +22,7 @@ export interface DraftRecord {
 export type DraftStatus = 'saved' | 'saving' | 'error' | 'conflict';
 export type DraftRead = { record: DraftRecord | null; legacy: boolean; error: string | null };
 export type SaveResult = { status: 'saved'; record: DraftRecord } |
+  { status: 'superseded' } |
   { status: 'error'; error: string } |
   { status: 'conflict'; remote: DraftRecord | null; local: DraftContent };
 
@@ -76,6 +77,7 @@ export class DraftSession {
   pending: DraftContent | null = null;
   remote: DraftRecord | null = null;
   private revision = 0;
+  private generation = 0;
   private queue: Promise<SaveResult> = Promise.resolve({ status: 'error', error: 'No save scheduled.' });
   private listener: (() => void) | null = null;
 
@@ -96,15 +98,20 @@ export class DraftSession {
     this.pending = content;
     if (this.status !== 'conflict' && !this.error) this.status = 'saving';
     this.onChange(this);
-    this.queue = this.queue.then(() => this.write(content), () => this.write(content));
+    const generation = this.generation;
+    this.queue = this.queue.then(() => this.write(content, generation), () => this.write(content, generation));
     return this.queue;
   }
 
-  private async write(content: DraftContent): Promise<SaveResult> {
+  private async write(content: DraftContent, generation: number): Promise<SaveResult> {
+    if (generation !== this.generation) return { status: 'superseded' };
     if (this.status === 'conflict') return { status: 'conflict', remote: this.remote, local: this.pending ?? content };
     if (!this.locks) return this.fail('This browser cannot safely coordinate multiple tabs. Draft was not saved.');
     try {
       const result = await this.locks.request(DRAFT_KEY, { mode: 'exclusive' }, async (): Promise<SaveResult> => {
+        // A version choice can happen while this write waits for another tab's lock.
+        if (generation !== this.generation) return { status: 'superseded' };
+        if (this.status === 'conflict') return { status: 'conflict', remote: this.remote, local: this.pending ?? content };
         const raw = this.storage.getItem(DRAFT_KEY);
         const latest = raw === null ? null : parseDraft(raw);
         if ((latest?.revision ?? 0) !== this.revision) {
@@ -142,6 +149,9 @@ export class DraftSession {
   /** Explicitly choose a version. Choosing local overwrites remote under the same writer lock. */
   async resolveConflict(choice: 'local' | 'remote'): Promise<SaveResult | null> {
     if (this.status !== 'conflict') return null;
+    if (choice === 'local' && !this.pending) return null;
+    // Invalidate both queued writes and writes already waiting for the Web Lock.
+    this.generation++;
     if (choice === 'remote') {
       if (!this.remote) {
         this.record = null; this.revision = 0; this.pending = null;

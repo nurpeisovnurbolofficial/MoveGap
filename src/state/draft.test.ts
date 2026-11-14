@@ -90,3 +90,33 @@ describe('draft persistence', () => {
     expect((second.pending.inputDraft as ReturnType<typeof createExample>).openingCashCents).toBe(200000);
   });
 });
+
+it.each(['remote', 'local'] as const)('keeps the chosen %s version when old writes are queued or waiting for a lock', async choice => {
+  const storage = memoryStorage();
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  let entered!: () => void;
+  const waiting = new Promise<void>(resolve => { entered = resolve; });
+  const lock = { request: async (_name: string, _options: unknown, callback: () => Promise<unknown>) => {
+    entered(); await gate; return callback();
+  } } as unknown as Pick<LockManager, 'request'>;
+  const session = new DraftSession(storage, lock, undefined, 'local');
+  const first = session.autosave(content(100));
+  await waiting;
+  const second = session.autosave(content(200, 'unfinished'));
+  const remote = { version: 2, revision: 1, tabId: 'remote', updatedAt: new Date().toISOString(), content: content(999) };
+  storage.setItem(DRAFT_KEY, JSON.stringify(remote));
+  session.handleStorageEvent(DRAFT_KEY, JSON.stringify(remote));
+  expect(session.status).toBe('conflict');
+  const resolving = session.resolveConflict(choice);
+  release();
+  expect((await first).status).toBe('superseded');
+  expect((await second).status).toBe('superseded');
+  await resolving;
+  expect((readDraft(storage).record!.content.inputDraft as ReturnType<typeof createExample>).openingCashCents)
+    .toBe(choice === 'remote' ? 999 : 200);
+  expect(session.status).toBe('saved');
+  expect(session.hasUnprotectedChanges).toBe(false);
+  await session.autosave(content(300));
+  expect((readDraft(storage).record!.content.inputDraft as ReturnType<typeof createExample>).openingCashCents).toBe(300);
+});
