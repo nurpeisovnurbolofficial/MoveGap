@@ -49,6 +49,12 @@ export function createCloudHandler(dependencies: HttpDependencies) {
   return async (request: Request): Promise<Response> => {
     try {
       const url = new URL(request.url);
+      if (process.env.VERCEL_ENV === 'preview') console.info('cloud-route-diagnostic', JSON.stringify({
+        hasQuery: Boolean(url.search),
+        onlyPlatformQuery: [...url.searchParams.keys()].every(key => key === 'planId'),
+        pathMatches: /^\/api\/cloud-plans(?:\/[a-fA-F0-9-]+(?:\/rotate-key)?)?\/?$/.test(url.pathname),
+        originMatches: !request.headers.has('origin') || request.headers.get('origin') === url.origin,
+      }));
       if ((request.headers.has('origin') && request.headers.get('origin') !== url.origin) || url.search) throw notFound();
       const route = /^\/api\/cloud-plans(?:\/([a-fA-F0-9-]+)(\/rotate-key)?)?\/?$/.exec(url.pathname);
       if (!route || (route[1] && !uuid.safeParse(route[1]).success)) throw notFound();
