@@ -4,6 +4,7 @@ import { Icon, Panel } from '../../shared/ui';
 import { money, shortDate } from '../../shared/format';
 import { PaymentHistory } from './PaymentHistory';
 import { PlanBackup } from './PlanBackup';
+import { UpcomingPayment } from './UpcomingPayment';
 import './YourPlanPage.css';
 
 function withoutFacts(input: MoveInput): MoveInput {
@@ -51,6 +52,7 @@ export function YourPlanPage({ input, plan, onCompare, onSave, onRecord, savedAt
       </Panel>
       <div className="note-block"><Icon name="check"/><div><strong>Counted once. Kept clear.</strong><p>An actual payment replaces its planned amount and date. Your plan is saved only in this browser.</p></div></div>
     </aside></div>
+    <UpcomingPayment plan={plan} onRecord={onRecord}/>
     <PaymentHistory input={input} plan={plan} onRecord={onRecord}/>
     <PlanBackup input={input} selectedId={plan.id}/>
   </>;
