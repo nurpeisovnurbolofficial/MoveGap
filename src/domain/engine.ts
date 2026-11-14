@@ -1,5 +1,5 @@
 import type { ComparisonResult, MoveInput, PaymentEvent, PlanResult, TimelineRow } from './types';
-import { getPaymentHistory, getActualCandidates } from './payments';
+import { getPaymentHistory, getActualCandidates } from './payments.js';
 
 const DAY = 86_400_000;
 const MAX_CENTS = 1_000_000_000;
