@@ -2,6 +2,8 @@ import { calculatePlans } from '../../domain/engine';
 import type { MoveInput, PaymentEvent, PlanResult } from '../../domain/types';
 import { Icon, Panel } from '../../shared/ui';
 import { money, shortDate } from '../../shared/format';
+import { PaymentHistory } from './PaymentHistory';
+import { PlanBackup } from './PlanBackup';
 import './YourPlanPage.css';
 
 function withoutFacts(input: MoveInput): MoveInput {
@@ -16,7 +18,7 @@ export function YourPlanPage({ input, plan, onCompare, onSave, onRecord, savedAt
   input: MoveInput; plan?: PlanResult; onCompare: () => void; onSave: () => void;
   onRecord: (id: string) => void; savedAt: string | null; dirty: boolean;
 }) {
-  if (!plan) return <><div className="page-heading"><h1>Your plan starts with a choice.</h1><p>Compare the options for your move, then choose one to keep track of.</p></div><div className="empty-state"><Icon name="calendar" size={40}/><h2>One move. A clear schedule.</h2><p>Your payments and deposit return will appear here.</p><button className="button primary" onClick={onCompare}>Compare plans<Icon name="arrow" size={17}/></button></div></>;
+  if (!plan) return <><div className="page-heading"><h1>Your plan starts with a choice.</h1><p>Compare the options for your move, then choose one to keep track of.</p></div><div className="empty-state"><Icon name="calendar" size={40}/><h2>One move. A clear schedule.</h2><p>Your payments and deposit return will appear here.</p><button className="button primary" onClick={onCompare}>Compare plans<Icon name="arrow" size={17}/></button></div><PaymentHistory input={input} onRecord={onRecord}/><PlanBackup input={input} selectedId={null}/></>;
   const refunds = input.commonEvents.filter(e => e.kind === 'deposit-refund');
   const planned = plan.timeline.some(row => row.isActual)
     ? calculatePlans(withoutFacts(input)).plans.find(candidate => candidate.id === plan.id) : null;
@@ -49,5 +51,7 @@ export function YourPlanPage({ input, plan, onCompare, onSave, onRecord, savedAt
       </Panel>
       <div className="note-block"><Icon name="check"/><div><strong>Counted once. Kept clear.</strong><p>An actual payment replaces its planned amount and date. Your plan is saved only in this browser.</p></div></div>
     </aside></div>
+    <PaymentHistory input={input} plan={plan} onRecord={onRecord}/>
+    <PlanBackup input={input} selectedId={plan.id}/>
   </>;
 }
