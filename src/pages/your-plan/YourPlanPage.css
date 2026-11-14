@@ -1,0 +1,11 @@
+.schedule-row { grid-template-columns:18px minmax(0,1fr) auto; }
+.schedule-description .badge { margin-top:6px; }
+.schedule-values { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 14px; margin:11px 0 5px; }
+.schedule-values>span { color:var(--p-muted); font-size:10px; }
+.schedule-values strong { display:block; color:var(--p-ink); font-size:11px; font-weight:500; white-space:normal; }
+.plan-metrics .plan-change { display:block; margin-top:7px; line-height:1.4; }
+.deposit-fact { margin:0 0 16px; font-size:11px; color:var(--green); line-height:1.6; }
+@media(max-width:480px) {
+  .schedule-row { grid-template-columns:minmax(0,1fr) auto; }
+  .schedule-values { grid-template-columns:1fr; }
+}
