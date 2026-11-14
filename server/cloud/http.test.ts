@@ -34,6 +34,10 @@ describe('cloud HTTP boundary', () => {
     const created = await response.json(); const path = `/${created.value.planId}`;
     expect(created.value.document).toEqual(document()); expect(JSON.stringify(created)).not.toContain(secret);
     expect((await handle(req(path, 'GET'))).status).toBe(200);
+    expect((await handle(req(`${path}?planId=${created.value.planId}`, 'GET'))).status).toBe(200);
+    expect((await handle(req(`${path}?planId=${randomUUID()}`, 'GET'))).status).toBe(404);
+    expect((await handle(req(`${path}?planId=${created.value.planId}&planId=${created.value.planId}`, 'GET'))).status).toBe(404);
+    expect((await handle(req(`${path}?planId=${created.value.planId}&secret=hidden`, 'GET'))).status).toBe(404);
     const update = { requestId: randomUUID(), expectedRevision: 1, document: document() };
     expect((await handle(req(path, 'PUT', update))).status).toBe(200);
     expect((await handle(req(path, 'PUT', { ...update, requestId: randomUUID() }))).status).toBe(409);

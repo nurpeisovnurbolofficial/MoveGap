@@ -49,16 +49,13 @@ export function createCloudHandler(dependencies: HttpDependencies) {
   return async (request: Request): Promise<Response> => {
     try {
       const url = new URL(request.url);
-      if (process.env.VERCEL_ENV === 'preview') console.info('cloud-route-diagnostic', JSON.stringify({
-        hasQuery: Boolean(url.search),
-        onlyPlatformQuery: [...url.searchParams.keys()].every(key => key === 'planId'),
-        pathMatches: /^\/api\/cloud-plans(?:\/[a-fA-F0-9-]+(?:\/rotate-key)?)?\/?$/.test(url.pathname),
-        originMatches: !request.headers.has('origin') || request.headers.get('origin') === url.origin,
-      }));
-      if ((request.headers.has('origin') && request.headers.get('origin') !== url.origin) || url.search) throw notFound();
+      if (request.headers.has('origin') && request.headers.get('origin') !== url.origin) throw notFound();
       const route = /^\/api\/cloud-plans(?:\/([a-fA-F0-9-]+)(\/rotate-key)?)?\/?$/.exec(url.pathname);
       if (!route || (route[1] && !uuid.safeParse(route[1]).success)) throw notFound();
       const planId = route[1]?.toLowerCase(), rotation = Boolean(route[2]);
+      // Vercel appends the dynamic filename parameter to Request.url. Accept
+      // only that exact path identifier; never credentials or arbitrary query data.
+      if (url.search && (!planId || url.searchParams.size !== 1 || url.searchParams.get('planId') !== route[1])) throw notFound();
       const key = /^Bearer ([a-f0-9]{64})$/.exec(request.headers.get('authorization') ?? '')?.[1];
       if (!key) throw notFound();
       const method = request.method.toUpperCase();
