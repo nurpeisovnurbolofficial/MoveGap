@@ -15,8 +15,8 @@ export function validateInput(input: MoveInput): string[] {
   if (input.version !== 1) errors.push('Unsupported plan version.');
   if (!isDate(input.startDate)) errors.push('Enter a valid start date.');
   if (!isDate(input.latestMoveDate)) errors.push('Enter a valid latest move date.');
-  if (!isMoney(input.openingCashCents)) errors.push('Opening cash must be nonnegative integer cents.');
-  if (!isMoney(input.reserveCents)) errors.push('Reserve must be nonnegative integer cents.');
+  if (!isMoney(input.openingCashCents)) errors.push('Enter available cash between $0 and $10,000,000.');
+  if (!isMoney(input.reserveCents)) errors.push('Enter a reserve between $0 and $10,000,000.');
   if (input.latestMoveDate < input.startDate) errors.push('Latest move date must not precede the start.');
   if (input.housingOptions.length < 1 || input.housingOptions.length > 3) errors.push('Enter 1–3 housing options.');
   if (input.movingOptions.length < 1 || input.movingOptions.length > 3) errors.push('Enter 1–3 moving options.');
@@ -31,11 +31,15 @@ export function validateInput(input: MoveInput): string[] {
   const allEvents = [...input.commonEvents];
   for (const option of input.housingOptions) {
     checkId(option.id); checkConfirmation(option.confirmation);
+    if (!option.label?.trim()) errors.push('Give every housing option a name.');
+    if (!option.events.length) errors.push(`${option.label || 'Housing option'}: add a payment, including $0 if there is no cost.`);
     if (!isDate(option.availableFrom)) errors.push(`${option.label}: invalid availability date.`);
     allEvents.push(...option.events);
   }
   for (const option of input.movingOptions) {
     checkId(option.id); checkConfirmation(option.confirmation);
+    if (!option.label?.trim()) errors.push('Give every moving option a name.');
+    if (!option.events.length) errors.push(`${option.label || 'Moving option'}: add a payment, including $0 if there is no cost.`);
     if (!isDate(option.moveDate)) errors.push(`${option.label}: invalid move date.`);
     if (isDate(input.startDate) && isDate(option.moveDate)
       && (option.moveDate < input.startDate || option.moveDate > addDays(input.startDate, 59))) {
