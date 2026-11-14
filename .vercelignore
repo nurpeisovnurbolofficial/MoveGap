@@ -1,0 +1,13 @@
+node_modules/
+.git/
+.agents/
+.vercel/
+.env*
+docs/
+PROJECT_OVERVIEW.md
+MOVEGAP_MVP_PLAN.md
+tmp/
+artifacts/
+coverage/
+.taste-skill/
+.pnpm-store/
