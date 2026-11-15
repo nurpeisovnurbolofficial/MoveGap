@@ -5,6 +5,7 @@ import { money, shortDate } from '../../shared/format';
 import { PaymentHistory } from './PaymentHistory';
 import { PlanBackup } from './PlanBackup';
 import { UpcomingPayment } from './UpcomingPayment';
+import { CalendarReminders } from './CalendarReminders';
 import './YourPlanPage.css';
 
 function withoutFacts(input: MoveInput): MoveInput {
@@ -15,9 +16,11 @@ function withoutFacts(input: MoveInput): MoveInput {
 }
 
 /** Sasha owns this page, saved-plan behavior and the pitch deck. */
-export function YourPlanPage({ input, plan, onCompare, onSave, onRecord, savedAt, dirty }: {
+export function YourPlanPage({ input, plan, onCompare, onSave, onRecord, savedAt, dirty, movePass = true, onUnlock = () => {} }: {
   input: MoveInput; plan?: PlanResult; onCompare: () => void; onSave: () => void;
   onRecord: (id: string) => void; savedAt: string | null; dirty: boolean;
+  /** Move Pass state from App; reminders open the same free demo dialog as recording payments. */
+  movePass?: boolean; onUnlock?: () => void;
 }) {
   if (!plan) return <><div className="page-heading"><h1>Your plan starts with a choice.</h1><p>Compare the options for your move, then choose one to keep track of.</p></div><div className="empty-state"><Icon name="calendar" size={40}/><h2>One move. A clear schedule.</h2><p>Your payments and deposit return will appear here.</p><button className="button primary" onClick={onCompare}>Compare plans<Icon name="arrow" size={17}/></button></div><PaymentHistory input={input} onRecord={onRecord}/><PlanBackup input={input} selectedId={null}/></>;
   const refunds = input.commonEvents.filter(e => e.kind === 'deposit-refund');
@@ -53,6 +56,7 @@ export function YourPlanPage({ input, plan, onCompare, onSave, onRecord, savedAt
       <div className="note-block"><Icon name="check"/><div><strong>Counted once. Kept clear.</strong><p>An actual payment replaces its planned amount and date. Your draft saves in this browser. Use Save online below to open it elsewhere.</p></div></div>
     </aside></div>
     <UpcomingPayment plan={plan} onRecord={onRecord}/>
+    <CalendarReminders input={input} plan={plan} unlocked={movePass} onUnlock={onUnlock}/>
     <PaymentHistory input={input} plan={plan} onRecord={onRecord}/>
     <PlanBackup input={input} selectedId={plan.id}/>
   </>;

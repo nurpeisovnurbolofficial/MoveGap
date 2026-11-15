@@ -69,15 +69,43 @@ describe('Compare Plans decision summary', () => {
 });
 
 describe('Compare Plans explanations', () => {
-  it('explains the critical day: payments that cause it and when money comes in next', () => {
-    const t = text(render(createExample()));
+  it('explains the critical day of the plan shown in detail: payments that cause it and when money comes in next', () => {
+    const input = createExample();
+    const t = text(render(input, calculatePlans(input).plans[0].id));
     expect(t).toContain('Critical day · Dec 1');
     expect(t).toContain('You start the day with $2,100.');
     expect(t).toContain('Drops below your reserve');
     expect(t).toContain('Can’t cover this payment');
     expect(t).toContain('Next money in: Take-home pay +$2,400 on Dec 3 — 2 days later.');
     expect(t).toContain('You need $1,650 more to keep your reserve — $1,150 just to cover every payment.');
-    expect(t).toContain('Tightest day · Dec 1'); // the plan that fits still shows its lowest point
+    expect(text(render(input))).toContain('Tightest day · Dec 1'); // the plan that fits still shows its lowest point
+  });
+
+  it('says on each card which payments cause the low point and when money comes in', () => {
+    const t = text(render(createExample()));
+    expect(t).toContain('Dec 1: Old rent $1,700 + New rent $1,550 due. Take-home pay +$2,400 arrives Dec 3 — 2 days later.');
+    expect(t).toContain('Tightest day Dec 1: Old rent $1,700 leaves $1,100.');
+    expect(t).toContain('Stays above your $500 reserve for all 60 days.');
+  });
+
+  it('keeps the page to one answer, the cards, the detail and one test-and-fix section', () => {
+    const html = render(createExample());
+    const t = text(html);
+    expect(t).not.toContain('What changes between plans');
+    expect(t).toContain('What if something changes?');
+    expect(t).toContain('Find payment changes');
+    expect(t).toContain('What if your Take-home pay (Dec 3) arrives 2 days late?');
+    expect(t).toContain('Dec 1: Tightest day in this plan');
+    expect(t).toContain('Home ready Nov 25');
+    expect(html.indexOf('compare-quick-test')).toBeLessThan(html.indexOf('id="compare-card-1"'));
+    expect(html).not.toMatch(/<button[^>]*disabled[^>]*>(Choose|Use real dates)/);
+    expect(html.indexOf('id="compare-summary-title"')).toBeLessThan(html.indexOf('id="compare-card-1"'));
+    expect(html.indexOf('id="compare-card-1"')).toBeLessThan(html.indexOf('id="compare-tools"'));
+  });
+
+  it('marks the day cash runs out for the closest plan when nothing fits', () => {
+    const input = createExample(); input.openingCashCents = 100000;
+    expect(text(render(input))).toContain('Plan 3 runs out of cash');
   });
 
   it('reads the critical day from the engine timeline without recalculating it', () => {
@@ -99,7 +127,7 @@ describe('Compare Plans explanations', () => {
     expect(rentDate(optionRows(plan2, input))).toBe('2026-12-01');
     expect(rentDate(optionRows(plan3, input))).toBe('2026-12-04');
     expect(optionRows(plan2, input).some(row => row.label === 'Old rent')).toBe(false); // shared payments are not repeated
-    expect(text(render(input))).toContain('Payments for this option');
+    expect(text(render(input))).toContain('Payments only this plan has');
   });
 
   it('lists combinations left out because of dates, with the reason', () => {
@@ -127,8 +155,8 @@ describe('Compare Plans explanations', () => {
     const input = createExample();
     const first = calculatePlans(input).plans[0].id;
     const html = render(input, first);
-    expect(count(html, 'Your current plan')).toBe(1);
-    expect(count(html, 'Continue with this plan')).toBe(1);
+    expect(count(html, '>Your current plan<')).toBe(1);
+    expect(count(html, 'Continue with this plan<')).toBe(1);
     expect(html).toContain('id="compare-detail-title">Plan 1');
   });
 

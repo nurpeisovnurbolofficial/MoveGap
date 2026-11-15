@@ -85,6 +85,7 @@ input[type=checkbox] { width: 19px; height: 19px; min-height: 19px; padding: 0; 
 .empty-state p { font-size: 15px; }
 .empty-state>svg { color: #726223; }
 /* Shell: a soft island and ordinary pill navigation, as in the reference header. */
+.workspace-header .workspace-kind,.workspace-header .workspace-save-state { display: none; }
 .move-workspace { background: var(--p-bg); padding: 20px; }
 .workspace-header { position: sticky; top: 12px; max-width: 1400px; margin: 0 auto; padding: 20px 26px 15px; border: 0; border-radius: 30px; background: var(--surface-inset); display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 9px 24px; }
 .workspace-header-inner,.workspace-nav-row { display: contents; }
@@ -273,6 +274,24 @@ input[type=checkbox] { width: 19px; height: 19px; min-height: 19px; padding: 0; 
 .preview-panel .mg-chart-detail { background: #fff6c9; }
 .preview-panel .mg-chart-step button { background: #fff6c9; border-color: #b7a34e; }
 .preview-panel .mg-chart-controls select { background: #fff9dd; }
+.preview-panel :is(h2,h3,.caption,.field-hint,.scope-note,.panel-heading>svg,.mg-cash-chart,.mg-chart-help,.mg-chart-legend,.mg-chart-controls,.mg-chart-detail,.mg-chart-detail p,.mg-chart-detail strong) { color: #000; }
+.preview-panel .mg-chart-label { fill: #000; }
+/* Dark comparison cards: status stays in labels, without colored top strips. */
+.compare-plans-page .plan-card {
+  --p-ink: #fff; --p-muted: #fff; --cp-muted: #fff; --red: #fff; --line: #555;
+  background: #2c2c2c; color: #fff; border-color: #454545;
+}
+.compare-plans-page .plan-card::before { display: none; }
+.compare-plans-page .plan-card.focused { border-color: var(--accent-fill); box-shadow: none; }
+.compare-plans-page .plan-card :is(.plan-number,.plan-description,.compare-metric>strong,.compare-metric>strong.negative,.compare-reason>svg) { color: #fff; }
+.compare-plans-page .plan-card .compare-chips li { background: #414141; color: #fff; }
+.compare-plans-page .plan-card .compare-reason { background: #393939; color: #fff; border: 1px solid #555; border-radius: 14px; }
+.compare-plans-page .plan-card .compare-reason.bad { background: #403333; border-color: #785651; }
+.compare-plans-page .plan-card .badge.blue { background: #494949; color: #fff; }
+.compare-plans-page .plan-card .badge.red { background: #5b3732; color: #fff; }
+.compare-plans-page .plan-card .preview-button { color: #fff; }
+.compare-plans-page .plan-card .preview-button:hover { background: #404040; color: #fff; border-radius: 999px; }
+.compare-plans-page .plan-card :is(button,[tabindex]):focus-visible { outline-color: var(--accent-fill); }
 /* Tracking and storage share the same visual system, including error states. */
 .selected-plan-banner { border: 0; border-radius: 25px; background: #e7e7e7; padding: 28px; }
 .banner-icon { background: var(--accent-fill); color: #4d4320; border-radius: 50%; width: 55px; height: 55px; }

@@ -33,6 +33,6 @@ export function WorkspaceShell({ page, children, onReset, onHelp, onSave, saved,
       </div>
     </header>
     <main id="main-content" tabIndex={-1} className="workspace-canvas" key={page}>{children}</main>
-    <footer className="workspace-footer"><span>MoveGap · Plan before you commit.</span><span>Drafts stay in this browser. Save online only when you choose. Calculations use your entered payments.</span><button className="text-button" onClick={onHelp}>How this works</button></footer>
+    <footer className="workspace-footer"><span>MoveGap · Plan before you commit.</span><span>Drafts stay in this browser. Save online only when you choose. Calculations use your entered payments. Not financial or legal advice.</span><button className="text-button" onClick={onHelp}>How this works</button></footer>
   </div>;
 }

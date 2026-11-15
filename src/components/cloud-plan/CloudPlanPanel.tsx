@@ -1,4 +1,4 @@
-﻿import { useEffect, useId, useRef, useState, type RefObject } from 'react';
+import { useEffect, useId, useRef, useState, type RefObject } from 'react';
 import type { CloudPlanPanelProps } from '../../contracts/cloudPlan';
 import { CLOUD_PLAN_RETENTION_DAYS } from '../../contracts/cloudPlan';
 import { cloudMessage, panelPermissions } from './panelPresentation';
@@ -39,11 +39,15 @@ export function CloudPlanPanel(props: CloudPlanPanelProps) {
   const [linkToOpen, setLinkToOpen] = useState(''); const [openError, setOpenError] = useState('');
   const [reveal, setReveal] = useState(false); const [waiting, setWaiting] = useState(false); const [actionError, setActionError] = useState('');
   const root = useRef<HTMLElement>(null); const locked = useRef(false);
+  /** “Copy private link” before the first online save: save first, then copy the new link. */
+  const copyAfterSave = useRef(false);
   const identity = `${state.lastSaved?.planId ?? 'local'}:${state.lastSaved?.revision ?? 0}`;
   const confirmationIdentity = useRef(identity);
   const operation = state.cloud.kind === 'saving' ? state.cloud.operation : '';
   useEffect(() => { locked.current=false; setWaiting(false); setActionError(''); }, [state.cloud, operation, state.lastSaved]);
   useEffect(() => { setConfirmation(null); setReveal(false); }, [state.lastSaved?.planId]);
+  useEffect(() => { if (state.lastSaved?.planId && copyAfterSave.current) { copyAfterSave.current = false; props.onCopyLink(); } }, [state.lastSaved?.planId, props]);
+  useEffect(() => { if (state.cloud.kind === 'error') copyAfterSave.current = false; }, [state.cloud.kind]);
   useEffect(() => { if (state.copyStatus === 'failed') setReveal(true); }, [state.copyStatus]);
   const blocked = permissions.busy || waiting;
   function invoke(action: () => void) {
@@ -77,7 +81,7 @@ export function CloudPlanPanel(props: CloudPlanPanelProps) {
     {state.lastSaved && <dl className="cloud-saved-meta"><div><dt>Last saved online</dt><dd>{timestamp(state.lastSaved.savedAt)}</dd></div><div><dt>Online copy expires</dt><dd>{timestamp(state.lastSaved.expiresAt)}</dd></div></dl>}
     <p className="cloud-privacy">Anyone with your private link can <strong>read and change</strong> this plan. Keep it somewhere safe. There is no email recovery if you lose it. Online copies expire after {CLOUD_PLAN_RETENTION_DAYS} days without a successful save.</p>
     {permissions.conflict ? <div className="cloud-conflict-actions"><p>Your changes and the online version have not been merged. Choose what to do next:</p><button type="button" disabled={blocked} onClick={() => requestConfirmation('load')}>Keep my copy and load online version</button><button type="button" disabled={blocked} onClick={() => requestConfirmation('new')}>Save my version as a separate plan</button></div> : <>
-      <div className="cloud-main-actions"><button type="button" className="cloud-primary" disabled={!permissions.save || blocked} aria-describedby={state.cannotSaveReason ? `${id}-save-help` : undefined} onClick={() => state.lastSaved ? invoke(props.onSave) : requestConfirmation('save')}>Save online</button><button type="button" disabled={!permissions.link || blocked} onClick={props.onCopyLink}>Copy private link</button></div>
+      <div className="cloud-main-actions"><button type="button" className="cloud-primary" disabled={!permissions.save || blocked} aria-describedby={state.cannotSaveReason ? `${id}-save-help` : undefined} onClick={() => state.lastSaved ? invoke(props.onSave) : requestConfirmation('save')}>Save online</button><button type="button" disabled={blocked || !(permissions.link || (permissions.save && !state.lastSaved))} onClick={() => { if (permissions.link) { props.onCopyLink(); return; } copyAfterSave.current = true; requestConfirmation('save'); }}>Copy private link</button></div>
       {state.cannotSaveReason && <p className="cloud-help" id={`${id}-save-help`}>{state.cannotSaveReason}</p>}
     </>}
     {permissions.retry && <button type="button" disabled={blocked} onClick={() => invoke(props.onRetry)}>Retry the same request</button>}
@@ -90,6 +94,6 @@ export function CloudPlanPanel(props: CloudPlanPanelProps) {
       {openError && <p id={`${id}-open-error`} role="alert">{openError}</p>}<p className="cloud-help">Only open links you trust. Your current draft must be kept before another plan replaces it.</p><button type="submit" disabled={!permissions.open || blocked}>Open saved plan</button>
     </form></details>
     {state.lastSaved && <details className="cloud-manage"><summary>Manage online copy</summary><p>These actions affect the online copy and its private link. They do not delete your local draft.</p><button type="button" disabled={!permissions.manage || blocked} onClick={()=>requestConfirmation('rotate')}>Replace private link</button><button type="button" className="cloud-danger" disabled={!permissions.manage || blocked} onClick={()=>requestConfirmation('delete')}>Delete online copy</button></details>}
-    {confirmation && <ConfirmAction kind={confirmation} onCancel={()=>setConfirmation(null)} onConfirm={confirm} fallback={root}/>}
+    {confirmation && <ConfirmAction kind={confirmation} onCancel={()=>{copyAfterSave.current=false;setConfirmation(null);}} onConfirm={confirm} fallback={root}/>}
   </section>;
 }
