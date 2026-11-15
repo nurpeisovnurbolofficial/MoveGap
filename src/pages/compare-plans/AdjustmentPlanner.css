@@ -1,0 +1,27 @@
+.adjustment-planner{margin-top:28px;min-width:0}
+.adjustment-planner p{color:var(--muted,#5c6575);line-height:1.6;font-size:14px}
+.adjustment-planner summary{cursor:pointer;font-weight:650;padding:14px 0;min-height:44px}
+.adjustment-planner fieldset{min-width:0;border:1px solid var(--line,#e1e5ec);border-radius:10px;padding:14px;margin:12px 0}
+.adjustment-planner legend{max-width:100%;padding:0 5px}
+.adjustment-planner legend label{overflow-wrap:anywhere}
+.adjustment-planner .field-grid{margin:12px 0;min-width:0}
+.adjustment-planner .field{min-width:0}
+.adjustment-planner .field input,.adjustment-planner .field select{width:100%;min-width:0;box-sizing:border-box}
+.adjustment-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px;margin-top:18px}
+.adjustment-card{border:1px solid var(--line,#e1e5ec);border-radius:12px;padding:18px;min-width:0}
+.adjustment-card h3{font-size:17px;margin:0 0 12px}
+.adjustment-card ul{padding-left:18px;margin:16px 0}
+.adjustment-card li{margin:10px 0;overflow-wrap:anywhere}
+.adjustment-card li span{display:block;font-size:14px;line-height:1.6}
+.adjustment-card dl{margin:16px 0}
+.adjustment-card dl div{display:flex;justify-content:space-between;gap:10px;margin:9px 0;font-size:13px}
+.adjustment-card dd{margin:0;font-weight:650;white-space:nowrap}
+.adjustment-stress-result{padding:12px;background:#f4f6fa;border-radius:8px}
+.adjustment-planner p.negative{color:#a12631}
+.series-preview{padding:16px;background:#f6f7fb;border-radius:10px;margin-top:16px}
+.series-preview ul{padding:0;list-style:none;max-height:240px;overflow:auto}
+.series-preview li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #e2e6ef;font-size:14px}
+.series-preview p{font-size:13px;line-height:1.5}
+.repeating-button{margin-top:16px}
+.move-option-toolbar{flex-wrap:wrap;gap:12px}
+@media(max-width:600px){.adjustment-planner .panel-heading{align-items:flex-start;flex-direction:column;gap:10px}.adjustment-planner .field-grid{grid-template-columns:1fr}.adjustment-planner{padding:18px}.series-preview li{flex-wrap:wrap}}
