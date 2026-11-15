@@ -29,4 +29,17 @@ describe('calendar reminders from the selected plan', () => {
     expect(reminderRows(after, '2026-11-14').some(row => row.label === 'Application fee')).toBe(false);
     for (const line of ics.split('\r\n')) expect(new TextEncoder().encode(line).length).toBeLessThanOrEqual(75);
   });
+
+  it('keeps the same event identity after rescheduling or changing the amount', () => {
+    const changed = createExample();
+    const rent = changed.commonEvents.find(event => event.id === 'old-rent')!;
+    rent.date = '2026-12-02'; rent.amountCents = 180000;
+    const updated = planCalendar(changed, calculatePlans(changed).plans[2], '2026-11-14', new Date('2026-11-16T06:00:00Z'));
+    const event = (file: string) => file.replace(/\r\n /g, '').split('BEGIN:VEVENT').find(block => block.includes('UID:old-rent@movegap'))!;
+    expect(event(ics)).toBeTruthy();
+    expect(event(updated)).toContain('DTSTART;VALUE=DATE:20261202');
+    expect(event(updated)).toContain(String.raw`SUMMARY:Pay Old rent $1\,800`);
+    expect(event(updated)).toContain('LAST-MODIFIED:20261116T060000Z');
+    expect(updated).not.toContain('UID:old-rent-2026');
+  });
 });

@@ -22,7 +22,7 @@ export function CalendarReminders({ input, plan, unlocked, onUnlock, asOf = loca
       link.href = url; link.download = `movegap-payments-${asOf}.ics`;
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 0);
-      setMessage(`Calendar file downloaded. Open it to add ${rows.length} ${rows.length === 1 ? 'date' : 'dates'} with a reminder the day before each one.`);
+      setMessage(`Calendar file downloaded: ${rows.length} ${rows.length === 1 ? 'date' : 'dates'}. Import it into a separate MoveGap calendar. If you imported an earlier file, remove its events before importing this one.`);
     } catch { setMessage('This browser could not create the calendar file. Your plan is unchanged.'); }
   }
   return <Panel title="Payment reminders" aside={<span className="count-tag">Move Pass</span>}>
@@ -30,7 +30,7 @@ export function CalendarReminders({ input, plan, unlocked, onUnlock, asOf = loca
     {rows.length ? <>
       <p className="calendar-reminder-summary"><strong>{payments.length} {payments.length === 1 ? 'payment' : 'payments'}</strong>{rows.length > payments.length && <> and <strong>{rows.length - payments.length} {rows.length - payments.length === 1 ? 'payday' : 'paydays'}</strong></>}{next && <> · next: {next.label} {money(next.effectiveAmountCents)} on {shortDate(next.date)}</>}</p>
       <button type="button" className="button secondary full-width" onClick={download}><Icon name="calendar" size={16}/>{unlocked ? 'Add reminders to my calendar' : 'Unlock reminders with Move Pass'}</button>
-      <p className="scope-note">Works with Apple Calendar, Google Calendar and Outlook (.ics file). Recorded payments are left out. Download again after your plan changes.</p>
+      <p className="scope-note">This .ics file is a snapshot, not automatic sync. Import it into a separate MoveGap calendar. After changing your plan or recording payments, remove the previously imported events from that calendar, then import a fresh file. Importing again alone may keep old reminders or create duplicates. Recorded payments are left out of new files. Reminder delivery depends on your calendar settings.</p>
     </> : <p className="payment-history-empty">No upcoming unpaid payments or paydays remain in this plan.</p>}
     {message && <p role="status" className="backup-message">{message}</p>}
   </Panel>;

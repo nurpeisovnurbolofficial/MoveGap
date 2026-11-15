@@ -36,7 +36,8 @@ export function planCalendar(input: MoveInput, plan: PlanResult, asOf: string, n
     const detail = `${income ? 'Expected income' : row.kind === 'refundable-deposit' ? 'Refundable deposit due' : 'Payment due'} in your MoveGap plan. `
       + `Planned cash after this: ${money(row.balanceCents)}. Lowest point in the plan: ${money(plan.minBalanceCents)}. `
       + `After it happens, record the actual amount in MoveGap so your forecast stays right.`;
-    lines.push('BEGIN:VEVENT', `UID:${text(`${row.eventId}-${row.date}`)}@movegap`, `DTSTAMP:${stamp(now)}`,
+    // Keep identity when dates or amounts change. File imports are snapshots, not a subscription.
+    lines.push('BEGIN:VEVENT', `UID:${encodeURIComponent(row.eventId)}@movegap`, `DTSTAMP:${stamp(now)}`, `LAST-MODIFIED:${stamp(now)}`,
       `DTSTART;VALUE=DATE:${day(row.date)}`, `DTEND;VALUE=DATE:${day(addDays(row.date, 1))}`,
       `SUMMARY:${text(summary)}`, `DESCRIPTION:${text(detail)}`, 'TRANSP:TRANSPARENT',
       'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${text(`Tomorrow: ${summary}`)}`, 'TRIGGER:-P1D', 'END:VALARM', 'END:VEVENT');
