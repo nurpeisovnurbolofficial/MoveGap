@@ -100,7 +100,7 @@ export function ComparePlansPage({ input: originalInput, result: originalResult,
     scrollTo(card);
   }
 
-  const heading = <div className="page-heading"><h1>Compare your moving options.</h1><p>See which plan works with the money you have. Your reserve{Number.isFinite(originalInput.reserveCents) ? ` (${money(originalInput.reserveCents)})` : ''} is cash you want to keep untouched the whole time.</p></div>;
+  const heading = <div className="page-heading"><h1>2. Compare plans</h1><p>Compare the cash balance for each option, then choose a plan to open your payment tracker. Your reserve{Number.isFinite(originalInput.reserveCents) ? ` (${money(originalInput.reserveCents)})` : ''} is cash you want to keep untouched the whole time.</p></div>;
 
   if (result.errors.length > 0) {
     return <div className="compare-plans-page">{heading}

@@ -63,4 +63,3 @@ input[aria-invalid=true] { border-color: #ba4b4b; background: #fffafa; }
 .move-payment-links > p { font-size:13px; line-height:1.6; margin-bottom:12px; }
 .move-payment-links .field { margin-top:12px; overflow-wrap:anywhere; }
 .move-payment-links select { min-width:0; width:100%; }
-.move-next-top { margin-top:16px; }

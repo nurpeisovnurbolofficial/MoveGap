@@ -3,10 +3,9 @@ import { Icon } from '../shared/ui';
 import './WorkspaceShell.css';
 
 export type Page = 'overview' | 'move' | 'compare' | 'plan';
-/** The menu reads as a path: start, then three numbered steps. */
-const sections: { id: Page; label: string; step?: number }[] = [
-  { id:'overview', label:'Start' }, { id:'move', label:'Your move', step:1 },
-  { id:'compare', label:'Compare plans', step:2 }, { id:'plan', label:'Track payments', step:3 },
+const sections: { id: Page; label: string }[] = [
+  { id:'overview', label:'Home' }, { id:'move', label:'1. Your move' },
+  { id:'compare', label:'2. Compare plans' }, { id:'plan', label:'3. Payment tracker' },
 ];
 
 export function WorkspaceShell({ page, children, onReset, onHelp, onSave, saved, dirty, hasPlan, source }: {
@@ -18,7 +17,7 @@ export function WorkspaceShell({ page, children, onReset, onHelp, onSave, saved,
     <a href="#main-content" className="skip-link" onClick={event => { event.preventDefault(); document.getElementById('main-content')?.focus({ preventScroll: true }); window.scrollTo(0, 0); }}>Skip to content</a>
     <header className="workspace-header">
       <div className="workspace-header-inner">
-        <a href="#/overview" className="brand" aria-label="MoveGap overview"><img src="/favicon.svg" alt="" width="32" height="32"/>MoveGap<span className="brand-dot">.</span></a>
+        <a href="#/overview" className="brand" aria-label="MoveGap home"><img src="/favicon.svg" alt="" width="32" height="32"/>MoveGap<span className="brand-dot">.</span></a>
         <span className="workspace-kind">{source === 'example' ? 'Example move' : 'My move'}</span>
         <div className="workspace-tools">
           <button className="icon-button" aria-label="How this works" onClick={onHelp}><Icon name="info"/></button>
@@ -28,12 +27,11 @@ export function WorkspaceShell({ page, children, onReset, onHelp, onSave, saved,
       </div>
       <div className="workspace-nav-row">
         <nav className="workspace-sections" aria-label="Workspace sections">
-          {sections.map(section => <a key={section.id} href={`#/${section.id}`} aria-current={page === section.id ? 'page' : undefined}>{section.step && <span className="workspace-step" aria-hidden="true">{section.step}</span>}{section.step && <span className="visually-hidden">Step {section.step}: </span>}{section.label}</a>)}
+          {sections.map(section => <a key={section.id} href={`#/${section.id}`} aria-current={page === section.id ? 'page' : undefined}>{section.label}</a>)}
         </nav>
         <span className={`workspace-save-state${dirty ? ' unsaved' : ''}`}><span aria-hidden="true"/>{saved ? 'Saved in this browser' : dirty ? 'Unsaved changes' : 'Not saved yet'}</span>
       </div>
     </header>
     <main id="main-content" tabIndex={-1} className="workspace-canvas" key={page}>{children}</main>
-    <footer className="workspace-footer"><span>MoveGap · Plan before you commit.</span><span>Drafts stay in this browser. Save online only when you choose. Calculations use your entered payments. Not financial or legal advice.</span><button className="text-button" onClick={onHelp}>How this works</button></footer>
   </div>;
 }

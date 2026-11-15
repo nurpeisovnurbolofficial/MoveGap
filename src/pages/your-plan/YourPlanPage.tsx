@@ -3,7 +3,6 @@ import type { MoveInput, PaymentEvent, PlanResult } from '../../domain/types';
 import { Icon, Panel } from '../../shared/ui';
 import { money, shortDate } from '../../shared/format';
 import { PaymentHistory } from './PaymentHistory';
-import { PlanBackup } from './PlanBackup';
 import { UpcomingPayment } from './UpcomingPayment';
 import { CalendarReminders } from './CalendarReminders';
 import './YourPlanPage.css';
@@ -22,13 +21,12 @@ export function YourPlanPage({ input, plan, onCompare, onSave, onRecord, savedAt
   /** Move Pass state from App; reminders open the same free demo dialog as recording payments. */
   movePass?: boolean; onUnlock?: () => void;
 }) {
-  const hasRecorded = [...input.commonEvents, ...input.housingOptions.flatMap(h => h.events), ...input.movingOptions.flatMap(m => m.events)].some(event => event.actual);
-  if (!plan) return <><div className="page-heading"><h1>Your plan starts with a choice.</h1><p>Compare the options for your move, then choose one to keep track of.</p></div><div className="empty-state"><Icon name="calendar" size={40}/><h2>One move. A clear schedule.</h2><p>Your payments and deposit return will appear here.</p><button className="button primary" onClick={onCompare}>Compare plans<Icon name="arrow" size={17}/></button></div>{hasRecorded && <PaymentHistory input={input} onRecord={onRecord}/>}<details className="plan-restore"><summary>Have a backup file from another browser? Restore it</summary><PlanBackup input={input} selectedId={null}/></details></>;
+  if (!plan) return <><div className="page-heading"><h1>3. Payment tracker</h1><p>Choose a plan in step 2 before recording payments.</p></div><div className="empty-state"><Icon name="calendar" size={40}/><h2>First, choose your moving plan.</h2><p>Your payments and deposit return will appear here.</p><button className="button primary" onClick={onCompare}>Compare plans<Icon name="arrow" size={17}/></button></div><PaymentHistory input={input} onRecord={onRecord}/></>;
   const refunds = input.commonEvents.filter(e => e.kind === 'deposit-refund');
   const planned = plan.timeline.some(row => row.isActual)
     ? calculatePlans(withoutFacts(input)).plans.find(candidate => candidate.id === plan.id) : null;
   const minimumChange = planned ? plan.minBalanceCents - planned.minBalanceCents : 0;
-  return <><div className="page-heading"><h1>Keep your move on track.</h1><p>Keep the dates in view. Record what actually happened as you go.</p></div>
+  return <><div className="page-heading"><h1>3. Payment tracker</h1><p>After a payment or payday, select Record actual and enter its amount and date. Your remaining cash will update.</p></div>
     <div className="selected-plan-banner"><span className="banner-icon"><Icon name="home" size={24}/></span><div><span className="caption">YOUR SELECTED MOVE</span><h2>{shortDate(plan.moveDate)}</h2></div><div className="banner-right"><span className={`badge ${plan.meetsReserve && !plan.needsConfirmation ? 'green' : 'amber'}`}>{plan.needsConfirmation ? 'Needs confirmation' : plan.meetsReserve ? 'Reserve preserved' : 'Reserve at risk'}</span><button className="text-button" onClick={onCompare}>Change plan<Icon name="chevron" size={16}/></button></div></div>
     <div className="plan-metrics"><div><span>Nonrefundable payments</span><strong>{money(plan.costCents)}</strong><small>Entered payments over 60 days</small></div><div><span>Lowest cash balance</span><strong className={!plan.meetsReserve ? 'negative' : ''}>{money(plan.minBalanceCents)}</strong><small>{shortDate(plan.minBalanceDate)}</small>{planned && <small className={`plan-change ${minimumChange < 0 ? 'negative' : ''}`}>{minimumChange === 0 ? 'No change from planned minimum' : `${minimumChange > 0 ? '+' : '−'}${money(Math.abs(minimumChange))} vs planned ${money(planned.minBalanceCents)}`}</small>}</div><div><span>Entries recorded</span><strong>{plan.timeline.filter(e => e.isActual).length}</strong><small>Actual amounts replace estimates</small></div></div>
     <div className="plan-layout"><div className="panel-stack"><Panel title="Your payment schedule" aside={<span className="count-tag">{plan.timeline.length} entries</span>}><p className="panel-intro">Record what happened after a payment or payday. Planned and actual values remain visible.</p><div className="schedule-list">{plan.timeline.map(row => <div className={`schedule-row ${row.isActual ? 'is-actual' : ''}`} key={row.eventId}><span className="schedule-marker" aria-hidden="true">{row.isActual ? <Icon name="check" size={13}/> : <span/>}</span><div className="schedule-description"><strong>{row.label}</strong><span className={`badge ${row.isActual ? 'green' : 'blue'}`}>{row.isActual ? row.cashChangeCents > 0 ? 'Received' : 'Paid' : row.kind === 'income' ? 'Expected income' : 'Planned'}</span><div className="schedule-values"><span>Planned <strong>{shortDate(row.plannedDate)} · {money(row.plannedAmountCents)}</strong></span><span>Actual <strong>{row.isActual ? `${shortDate(row.date)} · ${money(row.effectiveAmountCents)}` : 'Not recorded'}</strong></span></div><small>Cash after: {money(row.balanceCents)}</small></div><div className="schedule-amount"><strong>{row.cashChangeCents > 0 ? '+' : '−'}{money(row.effectiveAmountCents)}</strong><button className="text-button" onClick={() => onRecord(row.eventId)}>{row.isActual ? 'Edit actual' : 'Record actual'}</button></div></div>)}</div></Panel><div className="save-status"><Icon name="save" size={17}/><span>{savedAt ? dirty ? 'Your draft is saving or needs attention.' : 'Your latest plan is saved in this browser.' : 'Your draft saves automatically in this browser.'}</span><button className="button primary small" onClick={onSave}>{savedAt ? 'Save changes' : 'Save my plan'}<Icon name="arrow" size={16}/></button></div></div>
@@ -59,6 +57,5 @@ export function YourPlanPage({ input, plan, onCompare, onSave, onRecord, savedAt
     <UpcomingPayment plan={plan} onRecord={onRecord}/>
     <CalendarReminders input={input} plan={plan} unlocked={movePass} onUnlock={onUnlock}/>
     <PaymentHistory input={input} plan={plan} onRecord={onRecord}/>
-    <PlanBackup input={input} selectedId={plan.id}/>
   </>;
 }

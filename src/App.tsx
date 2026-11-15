@@ -47,6 +47,7 @@ function WorkspaceApp({ workspace }: { workspace: WorkspaceController }) {
   const local = workspace.localStatus();
   const savedAt = local.kind === 'saved' ? local.savedAt : null;
   const dirty = local.kind !== 'saved';
+  const storageProblem = workspace.draft.status === 'conflict' || Boolean(workspace.error || workspace.draft.error);
   const [page, setPage] = useState<Page>(getPage);
   const previousPage = useRef(page);
   const [message, setMessage] = useState<string | null>(null);
@@ -58,7 +59,7 @@ function WorkspaceApp({ workspace }: { workspace: WorkspaceController }) {
   const selected = result.plans.find(p => p.id === selectedId);
   useEffect(() => { const changed = () => { setPage(getPage()); window.scrollTo(0, 0); }; window.addEventListener('hashchange', changed); return () => window.removeEventListener('hashchange', changed); }, []);
   useEffect(() => {
-    document.title = `${({ overview: 'Start', move: 'Your move', compare: 'Compare plans', plan: 'Track payments' })[page]} · MoveGap`;
+    document.title = `${({ overview: 'Home', move: '1. Your move', compare: '2. Compare plans', plan: '3. Payment tracker' })[page]} · MoveGap`;
     if (previousPage.current !== page) document.getElementById('main-content')?.focus({ preventScroll: true });
     previousPage.current = page;
   }, [page]);
@@ -99,13 +100,14 @@ function WorkspaceApp({ workspace }: { workspace: WorkspaceController }) {
   }
   return <WorkspaceShell page={page} saved={Boolean(savedAt) && !dirty} dirty={dirty} hasPlan={true} source={source} onSave={requestSave} onReset={() => setDialog('reset')} onHelp={() => setDialog('help')}>
     {message && <div className="workspace-message" role="status"><Icon name="info" size={18}/><span>{message}</span><button className="icon-button" aria-label="Dismiss message" onClick={() => setMessage(null)}><Icon name="close" size={17}/></button></div>}
-    {page === 'overview' && <OverviewPage input={input} result={result} selected={selected} source={source} onEdit={() => navigate('move')} onCompare={() => navigate('compare')} onTrack={() => navigate('plan')}/>}
+    {page === 'overview' && <OverviewPage input={input} result={result} selected={selected} source={source} onStartOwn={startOwnMove} onEdit={() => navigate('move')} onCompare={() => navigate('compare')} onTrack={() => navigate('plan')}/>}
     {page === 'move' && <YourMovePage input={input} onChange={change} onStartOwn={startOwnMove} source={source} onCompare={() => navigate('compare')} onRecordActual={record} preview={result.plans[0]} errors={result.errors}/>}
     {page === 'compare' && <ComparePlansPage input={input} result={result} currentPlanId={selectedId} onBack={() => navigate('move')} onChoose={id => { workspace.select(id); navigate('plan'); }} onApplyAdjustment={applyPaymentChanges}/>}
     {page === 'plan' && <YourPlanPage input={input} plan={selected} onCompare={() => navigate('compare')} onSave={requestSave} onRecord={record} savedAt={savedAt} dirty={dirty} movePass={demoAccess} onUnlock={() => setDialog('pass')}/>}
     {editing && <PaymentDialog key={`${editing.event.id}-${editing.actual}`} {...editing} onClose={() => { workspace.clearFields(`actual.${editing.event.id}.`); setEditing(null); }} onSave={event => updateEvent(event.id, event)} onDelete={() => updateEvent(editing.event.id)}/>}
     {dialog === 'help' && <Modal title="A little clarity before a big move." onClose={() => setDialog(null)}><ol className="help-steps"><li><strong>Start with your numbers.</strong><p>Enter available cash, paydays, bills and confirmed moving options.</p></li><li><strong>Compare the full cash picture.</strong><p>Look at the lowest balance, your reserve and payment dates for each option.</p></li><li><strong>Keep track as it happens.</strong><p>Save a plan and replace planned payments with actual amounts and dates.</p></li></ol><div className="demo-disclosure">This is a working prototype with fictional example data. No money is charged. Results cover only your entered payments; deposit dates are estimates, not legal advice.</div></Modal>}
-    {(page === 'overview' || (page === 'plan' && selected) || workspace.draft.status === 'conflict' || workspace.error) && <WorkspaceStoragePanel workspace={workspace}/>}
+    {page === 'overview' && !storageProblem && <details className="journey-restore"><summary>Already have a saved plan? Open or recover it</summary><WorkspaceStoragePanel workspace={workspace}/></details>}
+    {((page === 'plan' && selected) || storageProblem) && <WorkspaceStoragePanel workspace={workspace} showCloud={page !== 'plan' || Boolean(selected)}/>}
     {dialog === 'reset' && <Modal title="Start again with the example?" onClose={() => setDialog(null)}><p className="modal-intro">Your current draft will be kept as a recovery copy before the fictional example is opened. Existing online plans will not be deleted.</p><div className="modal-actions"><button className="button secondary" onClick={() => setDialog(null)}>Keep my plan</button><button className="button primary" onClick={() => { void workspace.newMove(createExample(), 'example').then(() => { setDialog(null); navigate('move'); }).catch(error => setMessage(error.message)); }}>Reset example</button></div></Modal>}
     {dialog === 'pass' && <MovePassDialog
       onClose={() => setDialog(null)}
