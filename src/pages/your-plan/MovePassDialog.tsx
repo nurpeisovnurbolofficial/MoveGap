@@ -1,4 +1,4 @@
-﻿import { Icon, Modal } from '../../shared/ui';
+import { Icon, Modal } from '../../shared/ui';
 import './MovePassDialog.css';
 
 /** Same proposition used in the local V2/V1 handoff; this is not a purchase. */
@@ -12,7 +12,7 @@ export function MovePassDialog({ onClose, onDemo }: { onClose: () => void; onDem
     <div className="mg-pass">
       <p className="mg-pass-intro">{movePassOffer.description}</p>
       <div className="mg-pass-price"><strong>$9.99</strong><span>Proposed one-time price · no subscription</span></div>
-      <section aria-label="Free planning"><h3>Always outside the paid offer</h3><p>Calculations, draft protection, online saving, and access to your data do not require a Move Pass. Online saving is not connected in this build.</p></section>
+      <section aria-label="Free planning"><h3>Always outside the paid offer</h3><p>Calculations, draft protection, online saving, and access to your data do not require a Move Pass. Online saving is separate from this offer.</p></section>
       <section aria-label="Available in the free demo"><h3>Working in the free demo</h3><ul>
         <li><Icon name="check" size={17}/>Track planned and actual payment dates and amounts.</li>
         <li><Icon name="check" size={17}/>See how recorded payments change your available cash.</li>

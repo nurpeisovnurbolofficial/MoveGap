@@ -1,5 +1,5 @@
 import type { ComparisonResult, MoveInput, PaymentEvent, PlanResult, TimelineRow } from './types';
-import { getPaymentHistory, getActualCandidates } from './payments';
+import { getPaymentHistory, getActualCandidates } from './payments.js';
 
 const DAY = 86_400_000;
 const MAX_CENTS = 1_000_000_000;
@@ -96,7 +96,7 @@ export function calculatePlans(input: MoveInput): ComparisonResult {
     const pending: PaymentEvent[] = [];
     for (const row of selected) {
       const event = row.event;
-      const candidates = getActualCandidates(input, row.owner, event);
+      const candidates = getActualCandidates(input, row.owner, event, history);
       for (const candidate of candidates) {
         if (!event.actualLinks?.[candidate.event.id]) {
           needsConfirmation = true;

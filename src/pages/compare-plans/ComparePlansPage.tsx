@@ -11,6 +11,7 @@ import './ComparePlansPage.css';
 import { calculatePlans } from '../../domain/engine';
 import { delayIncome, delayableIncome } from './explorationData';
 import { CashCalendar, PlanRecovery, ScenarioControls } from './PlanningTools';
+import { AdjustmentPlanner } from './AdjustmentPlanner';
 import { PlanComparisonSummary } from './PlanComparisonSummary';
 
 const statusText: Record<MoneyStatus, string> = { fits: 'Keeps your reserve', reserve: 'Uses your reserve', short: 'Not enough cash' };
@@ -28,10 +29,11 @@ type Props = {
   onBack: () => void;
   /** Optional: the plan chosen earlier, so returning to this page shows it. */
   currentPlanId?: string | null;
+  onApplyAdjustment?: (next: MoveInput, expected: MoveInput) => Promise<void>;
 };
 
 /** All financial outcomes and recommendation IDs come from the shared engine. */
-export function ComparePlansPage({ input: originalInput, result: originalResult, onChoose, onBack, currentPlanId = null }: Props) {
+export function ComparePlansPage({ input: originalInput, result: originalResult, onChoose, onBack, currentPlanId = null, onApplyAdjustment }: Props) {
   const [scenarioOn, setScenarioOn] = useState(false);
   const [incomeId, setIncomeId] = useState('');
   const [delayDays, setDelayDays] = useState(2);
@@ -97,6 +99,7 @@ export function ComparePlansPage({ input: originalInput, result: originalResult,
 
     <PlanDetail ref={detailRef} plan={focused} input={input} plans={result.plans} number={number} current={currentPlanId === focused.id} onSelect={setFocusedId} onChoose={() => choosePlan(focused.id)} previewOnly={scenarioActive} onRestore={() => setScenarioOn(false)}/>
     <PlanRecovery key={`${focused.id}-${scenarioActive}-${delayDays}-${selectedIncomeId}`} input={input} plan={focused} number={number(focused.id)} onBack={onBack}/>
+    {!scenarioActive && <AdjustmentPlanner key={focused.id} input={originalInput} plan={focused} number={number(focused.id)} onApply={onApplyAdjustment}/>}
 
     <details className="assumptions"><summary><Icon name="info" size={17}/>How this comparison works</summary>
       <p>Only the payments and income you entered within the same 60-day period are included. Expected deposit returns and unconfirmed income are left out until received or confirmed. Refundable deposits reduce your available cash, but are not counted as spending.</p>

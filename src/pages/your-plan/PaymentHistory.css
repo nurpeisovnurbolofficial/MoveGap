@@ -1,0 +1,11 @@
+.payment-history-list { display:grid; }
+.payment-history-row { display:flex; justify-content:space-between; gap:20px; padding:16px 0; border-bottom:1px solid #edf0f4; }
+.payment-history-row:last-child { border-bottom:0; }
+.payment-history-row strong,.payment-history-row small { display:block; }
+.payment-history-row strong { font-size:12px; font-weight:600; }
+.payment-history-row small { margin-top:4px; color:var(--p-muted); font-size:10px; }
+.payment-history-row .payment-deviation { color:var(--p-ink); font-size:11px; margin-top:8px; }
+.payment-history-action { text-align:right; }
+.payment-history-action .text-button { margin-top:6px; color:var(--p-accent); }
+.payment-history-empty { color:var(--p-muted); font-size:12px; }
+@media(max-width:480px) { .payment-history-row { flex-direction:column; gap:8px; } .payment-history-action { text-align:left; } }

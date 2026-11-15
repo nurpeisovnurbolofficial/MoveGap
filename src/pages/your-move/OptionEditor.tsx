@@ -1,3 +1,4 @@
+import { useDraftField } from '../../state/WorkspaceContext';
 import { useId, useState } from 'react';
 import type { Confirmation } from '../../domain/types';
 import { addDays } from '../../domain/engine';
@@ -10,9 +11,9 @@ export function OptionEditor({ kind, initial, isNew, startDate, latestMoveDate, 
   kind: 'housing' | 'moving'; initial: OptionDraft; isNew: boolean; startDate: string; latestMoveDate: string;
   onSave: (draft: OptionDraft) => void; onClose: () => void;
 }) {
-  const [label, setLabel] = useState(initial.label);
-  const [date, setDate] = useState(initial.date);
-  const [confirmation, setConfirmation] = useState(initial.confirmation);
+  const [label, setLabel] = useDraftField('option.label', initial.label);
+  const [date, setDate] = useDraftField('option.date', initial.date);
+  const [confirmation, setConfirmation] = useDraftField('option.confirmation', initial.confirmation);
   const [submitted, setSubmitted] = useState(false);
   const id = useId();
   const windowEnd = validDate(startDate) ? addDays(startDate, 59) : '';

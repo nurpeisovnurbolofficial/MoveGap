@@ -19,8 +19,8 @@ export function getPaymentHistory(input: MoveInput): PaymentHistoryEntry[] {
 }
 
 /** Plausible overlap is a question for the user, not an automatic identity match. */
-export function getActualCandidates(input: MoveInput, owner: PaymentOwner, event: PaymentEvent): PaymentHistoryEntry[] {
-  return getPaymentHistory(input).filter(row => row.event.id !== event.id && row.event.kind === event.kind
+export function getActualCandidates(input: MoveInput, owner: PaymentOwner, event: PaymentEvent, history = getPaymentHistory(input)): PaymentHistoryEntry[] {
+  return history.filter(row => row.event.id !== event.id && row.event.kind === event.kind
     && (event.actualLinks?.[row.event.id] !== undefined || (row.event.actual && owner.kind !== 'common'
       && row.owner.kind === owner.kind && 'id' in row.owner && row.owner.id !== owner.id)));
 }
