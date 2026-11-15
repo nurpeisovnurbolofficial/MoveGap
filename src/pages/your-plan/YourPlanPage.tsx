@@ -22,7 +22,8 @@ export function YourPlanPage({ input, plan, onCompare, onSave, onRecord, savedAt
   /** Move Pass state from App; reminders open the same free demo dialog as recording payments. */
   movePass?: boolean; onUnlock?: () => void;
 }) {
-  if (!plan) return <><div className="page-heading"><h1>Your plan starts with a choice.</h1><p>Compare the options for your move, then choose one to keep track of.</p></div><div className="empty-state"><Icon name="calendar" size={40}/><h2>One move. A clear schedule.</h2><p>Your payments and deposit return will appear here.</p><button className="button primary" onClick={onCompare}>Compare plans<Icon name="arrow" size={17}/></button></div><PaymentHistory input={input} onRecord={onRecord}/><PlanBackup input={input} selectedId={null}/></>;
+  const hasRecorded = [...input.commonEvents, ...input.housingOptions.flatMap(h => h.events), ...input.movingOptions.flatMap(m => m.events)].some(event => event.actual);
+  if (!plan) return <><div className="page-heading"><h1>Your plan starts with a choice.</h1><p>Compare the options for your move, then choose one to keep track of.</p></div><div className="empty-state"><Icon name="calendar" size={40}/><h2>One move. A clear schedule.</h2><p>Your payments and deposit return will appear here.</p><button className="button primary" onClick={onCompare}>Compare plans<Icon name="arrow" size={17}/></button></div>{hasRecorded && <PaymentHistory input={input} onRecord={onRecord}/>}<details className="plan-restore"><summary>Have a backup file from another browser? Restore it</summary><PlanBackup input={input} selectedId={null}/></details></>;
   const refunds = input.commonEvents.filter(e => e.kind === 'deposit-refund');
   const planned = plan.timeline.some(row => row.isActual)
     ? calculatePlans(withoutFacts(input)).plans.find(candidate => candidate.id === plan.id) : null;

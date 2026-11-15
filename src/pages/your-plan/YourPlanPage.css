@@ -9,3 +9,5 @@
   .schedule-row { grid-template-columns:minmax(0,1fr) auto; }
   .schedule-values { grid-template-columns:1fr; }
 }
+.plan-restore { margin-top:24px; }
+.plan-restore > summary { cursor:pointer; font-size:14px; font-weight:600; padding:12px 0; min-height:44px; }

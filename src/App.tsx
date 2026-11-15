@@ -58,7 +58,7 @@ function WorkspaceApp({ workspace }: { workspace: WorkspaceController }) {
   const selected = result.plans.find(p => p.id === selectedId);
   useEffect(() => { const changed = () => { setPage(getPage()); window.scrollTo(0, 0); }; window.addEventListener('hashchange', changed); return () => window.removeEventListener('hashchange', changed); }, []);
   useEffect(() => {
-    document.title = `${({ overview: 'Overview', move: 'Move details', compare: 'Compare options', plan: 'Payment tracker' })[page]} · MoveGap`;
+    document.title = `${({ overview: 'Start', move: 'Your move', compare: 'Compare plans', plan: 'Track payments' })[page]} · MoveGap`;
     if (previousPage.current !== page) document.getElementById('main-content')?.focus({ preventScroll: true });
     previousPage.current = page;
   }, [page]);
@@ -105,7 +105,7 @@ function WorkspaceApp({ workspace }: { workspace: WorkspaceController }) {
     {page === 'plan' && <YourPlanPage input={input} plan={selected} onCompare={() => navigate('compare')} onSave={requestSave} onRecord={record} savedAt={savedAt} dirty={dirty} movePass={demoAccess} onUnlock={() => setDialog('pass')}/>}
     {editing && <PaymentDialog key={`${editing.event.id}-${editing.actual}`} {...editing} onClose={() => { workspace.clearFields(`actual.${editing.event.id}.`); setEditing(null); }} onSave={event => updateEvent(event.id, event)} onDelete={() => updateEvent(editing.event.id)}/>}
     {dialog === 'help' && <Modal title="A little clarity before a big move." onClose={() => setDialog(null)}><ol className="help-steps"><li><strong>Start with your numbers.</strong><p>Enter available cash, paydays, bills and confirmed moving options.</p></li><li><strong>Compare the full cash picture.</strong><p>Look at the lowest balance, your reserve and payment dates for each option.</p></li><li><strong>Keep track as it happens.</strong><p>Save a plan and replace planned payments with actual amounts and dates.</p></li></ol><div className="demo-disclosure">This is a working prototype with fictional example data. No money is charged. Results cover only your entered payments; deposit dates are estimates, not legal advice.</div></Modal>}
-    {(page === 'overview' || page === 'plan' || workspace.draft.status === 'conflict' || workspace.error) && <WorkspaceStoragePanel workspace={workspace}/>}
+    {(page === 'overview' || (page === 'plan' && selected) || workspace.draft.status === 'conflict' || workspace.error) && <WorkspaceStoragePanel workspace={workspace}/>}
     {dialog === 'reset' && <Modal title="Start again with the example?" onClose={() => setDialog(null)}><p className="modal-intro">Your current draft will be kept as a recovery copy before the fictional example is opened. Existing online plans will not be deleted.</p><div className="modal-actions"><button className="button secondary" onClick={() => setDialog(null)}>Keep my plan</button><button className="button primary" onClick={() => { void workspace.newMove(createExample(), 'example').then(() => { setDialog(null); navigate('move'); }).catch(error => setMessage(error.message)); }}>Reset example</button></div></Modal>}
     {dialog === 'pass' && <MovePassDialog
       onClose={() => setDialog(null)}

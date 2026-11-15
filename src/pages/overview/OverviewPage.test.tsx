@@ -21,8 +21,16 @@ describe('Overview leads with the answer', () => {
     const input = createExample(); input.openingCashCents = 100000;
     expect(render(input)).toContain('Closest option · none keeps your reserve yet');
   });
-  it('gives the jury a one-minute path only on the example', () => {
-    expect(render()).toContain('Fictional example · try it in 1 minute');
-    expect(render(createExample(), 'own')).not.toContain('try it in 1 minute');
+  it('says what MoveGap does and shows the three steps with their status', () => {
+    const t = render();
+    expect(t).toContain('Can you pay for your move on every payment day?');
+    expect(t).toContain('1Enter your move');
+    expect(t).toContain('2Compare plans');
+    expect(t).toContain('3Track payments');
+    expect(t).toContain('Done'); expect(t).toContain('Next'); expect(t).toContain('Later');
+  });
+  it('labels the example only when it is the example', () => {
+    expect(render()).toContain('This is a fictional example');
+    expect(render(createExample(), 'own')).not.toContain('fictional example');
   });
 });

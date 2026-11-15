@@ -18,12 +18,13 @@ export function OverviewPage({ input, result, selected, source, onEdit, onCompar
   const moving = input.movingOptions.find(m => m.id === plan?.movingId);
   const recorded = plan?.timeline.filter(row => row.isActual).length ?? 0;
   return <>
-    <div className="workspace-intro"><div><h1>Your move at a glance.</h1><p>Know where your cash stands before you commit.</p></div><button className="button secondary" onClick={onEdit}><Icon name="wallet" size={18}/>Edit move details</button></div>
-    {source === 'example' && <div className="workspace-example-note overview-tryit">
-      <div><strong>Fictional example · try it in 1 minute</strong>
-        <ol><li>Open <b>Compare options</b> to see which plan works and why.</li><li>Under <b>What if something changes?</b>, test a late paycheck.</li><li>Choose a plan, then <b>record an actual payment</b> in Payment tracker.</li></ol></div>
-      <div className="overview-tryit-actions"><button className="button primary" onClick={onCompare}>Start: Compare options<Icon name="arrow" size={16}/></button><button className="text-button" onClick={onEdit}>Use my own numbers<Icon name="arrow" size={16}/></button></div>
-    </div>}
+    <div className="workspace-intro"><div><h1>Can you pay for your move on every payment day?</h1><p>MoveGap puts your cash, rent, deposit, mover and paydays on one calendar and shows the day money runs short — before you sign anything.</p></div></div>
+    <ol className="overview-steps" aria-label="How MoveGap works">
+      <li className={result.errors.length ? 'is-next' : 'is-done'}><button onClick={onEdit}><span className="overview-step-number">1</span><span><strong>Enter your move</strong><small>Your cash, paydays, bills, and the homes and movers you are choosing between.</small></span><em>{result.errors.length ? 'To do' : 'Done'}</em></button></li>
+      <li className={selected ? 'is-done' : result.errors.length ? '' : 'is-next'}><button onClick={onCompare}><span className="overview-step-number">2</span><span><strong>Compare plans</strong><small>See which home and moving date keeps enough cash on every day.</small></span><em>{selected ? 'Done' : 'Next'}</em></button></li>
+      <li className={selected ? 'is-next' : ''}><button onClick={selected ? onTrack : onCompare}><span className="overview-step-number">3</span><span><strong>Track payments</strong><small>Record what you really pay and get a reminder before each due date.</small></span><em>{selected ? 'Next' : 'Later'}</em></button></li>
+    </ol>
+    {source === 'example' && <div className="workspace-example-note"><span>This is a fictional example, so you can try every step right away.</span><button className="text-button" onClick={onEdit}>Use my own numbers<Icon name="arrow" size={16}/></button></div>}
     {!plan ? <div className="empty-state"><Icon name="home" size={32}/><h2>Give your move a starting point.</h2><p>Add your cash, payments and housing and moving options. Your forecast will appear here.</p>{result.errors.length > 0 && <p>{result.errors.length} input {result.errors.length === 1 ? 'item needs' : 'items need'} attention in Move details.</p>}<button className="button primary" onClick={onEdit}>Add move details</button></div> : <>
       <div className="overview-context"><span>{selected ? 'Selected plan' : isEligible(plan) ? 'Best option from your offers' : 'Closest option · none keeps your reserve yet'}</span><strong>{housing?.label} · {moving?.label}</strong><span>Move on {shortDate(plan.moveDate)}</span></div>
       <div className="overview-grid">

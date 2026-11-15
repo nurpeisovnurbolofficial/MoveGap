@@ -3,9 +3,10 @@ import { Icon } from '../shared/ui';
 import './WorkspaceShell.css';
 
 export type Page = 'overview' | 'move' | 'compare' | 'plan';
-const sections: { id: Page; label: string }[] = [
-  { id:'overview', label:'Overview' }, { id:'move', label:'Move details' },
-  { id:'compare', label:'Compare options' }, { id:'plan', label:'Payment tracker' },
+/** The menu reads as a path: start, then three numbered steps. */
+const sections: { id: Page; label: string; step?: number }[] = [
+  { id:'overview', label:'Start' }, { id:'move', label:'Your move', step:1 },
+  { id:'compare', label:'Compare plans', step:2 }, { id:'plan', label:'Track payments', step:3 },
 ];
 
 export function WorkspaceShell({ page, children, onReset, onHelp, onSave, saved, dirty, hasPlan, source }: {
@@ -27,7 +28,7 @@ export function WorkspaceShell({ page, children, onReset, onHelp, onSave, saved,
       </div>
       <div className="workspace-nav-row">
         <nav className="workspace-sections" aria-label="Workspace sections">
-          {sections.map(section => <a key={section.id} href={`#/${section.id}`} aria-current={page === section.id ? 'page' : undefined}>{section.label}</a>)}
+          {sections.map(section => <a key={section.id} href={`#/${section.id}`} aria-current={page === section.id ? 'page' : undefined}>{section.step && <span className="workspace-step" aria-hidden="true">{section.step}</span>}{section.step && <span className="visually-hidden">Step {section.step}: </span>}{section.label}</a>)}
         </nav>
         <span className={`workspace-save-state${dirty ? ' unsaved' : ''}`}><span aria-hidden="true"/>{saved ? 'Saved in this browser' : dirty ? 'Unsaved changes' : 'Not saved yet'}</span>
       </div>

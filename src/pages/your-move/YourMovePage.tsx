@@ -92,7 +92,9 @@ export function YourMovePage({ input, onChange, onStartOwn, source, onCompare, o
   }
 
   return <>
-    <div className="page-heading"><div className="eyebrow-line"><span className="eyebrow">Move details</span><span className="example-badge">{source === 'example' ? 'Based on fictional example data' : source === 'saved' ? 'Your saved plan' : 'Your own move'}</span></div><h1>Your move, in numbers.</h1><p>Put your cash and commitments in one place. See what each moving date means for you.</p></div>
+    <div className="page-heading"><div className="eyebrow-line"><span className="eyebrow">Move details</span><span className="example-badge">{source === 'example' ? 'Based on fictional example data' : source === 'saved' ? 'Your saved plan' : 'Your own move'}</span></div><h1>Your move, in numbers.</h1><p>Put your cash and commitments in one place. See what each moving date means for you.</p>
+      <button className="button primary move-next-top" disabled={errors.length > 0 || !compatible} onClick={onCompare}>Next: compare plans<Icon name="arrow" size={17}/></button>
+      {(errors.length > 0 || !compatible) && <p className="field-hint">Finish the entries below to compare plans.</p>}</div>
     <div className="move-start-bar"><div><strong>{source === 'example' ? 'Ready to plan your own move?' : 'Need a fresh start?'}</strong><p>{source === 'example' ? 'Start with a clean form, or explore and edit the example below.' : 'Create a new move without carrying over old payments or options.'}</p></div><button className="button secondary" onClick={() => setStartingOwn(true)}><Icon name="plus" size={17}/>Start my own move</button></div>
     {notice && <div className="workspace-message" role="status"><Icon name="info" size={18}/><span>{notice}</span><button className="icon-button" aria-label="Dismiss update" onClick={() => setNotice('')}><Icon name="close" size={17}/></button></div>}
     <div className="input-layout"><div className="panel-stack">
