@@ -96,7 +96,7 @@ export function calculatePlans(input: MoveInput): ComparisonResult {
     const pending: PaymentEvent[] = [];
     for (const row of selected) {
       const event = row.event;
-      const candidates = getActualCandidates(input, row.owner, event);
+      const candidates = getActualCandidates(input, row.owner, event, history);
       for (const candidate of candidates) {
         if (!event.actualLinks?.[candidate.event.id]) {
           needsConfirmation = true;

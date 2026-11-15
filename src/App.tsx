@@ -89,11 +89,19 @@ function WorkspaceApp({ workspace }: { workspace: WorkspaceController }) {
     else setMessage('Your draft is saved in this browser. Online saving is separate and free.');
   }
   const requestSave = () => { void save(); };
+  async function applyPaymentChanges(next: MoveInput, expected: MoveInput) {
+    if (!workspace.completeDocument()) throw new Error('Finish open editors and resolve saving conflicts before applying changes.');
+    if (JSON.stringify(workspace.input) !== JSON.stringify(expected)) throw new Error('Your move changed. Search again before applying.');
+    const token = JSON.stringify(workspace.content);
+    await workspace.archive();
+    if (JSON.stringify(workspace.content) !== token) throw new Error('Your draft changed while it was being protected. Search again.');
+    workspace.updateInput(next);
+  }
   return <WorkspaceShell page={page} saved={Boolean(savedAt) && !dirty} dirty={dirty} hasPlan={true} source={source} onSave={requestSave} onReset={() => setDialog('reset')} onHelp={() => setDialog('help')}>
     {message && <div className="workspace-message" role="status"><Icon name="info" size={18}/><span>{message}</span><button className="icon-button" aria-label="Dismiss message" onClick={() => setMessage(null)}><Icon name="close" size={17}/></button></div>}
     {page === 'overview' && <OverviewPage input={input} result={result} selected={selected} source={source} onEdit={() => navigate('move')} onCompare={() => navigate('compare')} onTrack={() => navigate('plan')}/>}
     {page === 'move' && <YourMovePage input={input} onChange={change} onStartOwn={startOwnMove} source={source} onCompare={() => navigate('compare')} onRecordActual={record} preview={result.plans[0]} errors={result.errors}/>}
-    {page === 'compare' && <ComparePlansPage input={input} result={result} currentPlanId={selectedId} onBack={() => navigate('move')} onChoose={id => { workspace.select(id); navigate('plan'); }}/>}
+    {page === 'compare' && <ComparePlansPage input={input} result={result} currentPlanId={selectedId} onBack={() => navigate('move')} onChoose={id => { workspace.select(id); navigate('plan'); }} onApplyAdjustment={applyPaymentChanges}/>}
     {page === 'plan' && <YourPlanPage input={input} plan={selected} onCompare={() => navigate('compare')} onSave={requestSave} onRecord={record} savedAt={savedAt} dirty={dirty}/>}
     {editing && <PaymentDialog key={`${editing.event.id}-${editing.actual}`} {...editing} onClose={() => { workspace.clearFields(`actual.${editing.event.id}.`); setEditing(null); }} onSave={event => updateEvent(event.id, event)} onDelete={() => updateEvent(editing.event.id)}/>}
     {dialog === 'help' && <Modal title="A little clarity before a big move." onClose={() => setDialog(null)}><ol className="help-steps"><li><strong>Start with your numbers.</strong><p>Enter available cash, paydays, bills and confirmed moving options.</p></li><li><strong>Compare the full cash picture.</strong><p>Look at the lowest balance, your reserve and payment dates for each option.</p></li><li><strong>Keep track as it happens.</strong><p>Save a plan and replace planned payments with actual amounts and dates.</p></li></ol><div className="demo-disclosure">This is a working prototype with fictional example data. No money is charged. Results cover only your entered payments; deposit dates are estimates, not legal advice.</div></Modal>}
