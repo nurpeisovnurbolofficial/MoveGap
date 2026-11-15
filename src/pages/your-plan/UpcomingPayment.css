@@ -4,3 +4,4 @@
 .upcoming-payment strong { margin:7px 0; font-size:16px; }
 .upcoming-payment small { color:var(--p-muted); margin-top:5px; font-size:11px; }
 @media(max-width:480px) { .upcoming-payment { align-items:flex-start; flex-direction:column; } }
+.calendar-reminder-summary { font-size:13px; line-height:1.6; margin:0 0 14px; }

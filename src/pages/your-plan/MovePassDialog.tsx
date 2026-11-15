@@ -17,6 +17,7 @@ export function MovePassDialog({ onClose, onDemo }: { onClose: () => void; onDem
         <li><Icon name="check" size={17}/>Track planned and actual payment dates and amounts.</li>
         <li><Icon name="check" size={17}/>See how recorded payments change your available cash.</li>
         <li><Icon name="check" size={17}/>Track your old deposit separately until it is returned.</li>
+        <li><Icon name="check" size={17}/>Get calendar reminders the day before each payment.</li>
       </ul></section>
       <div className="mg-pass-demo"><strong>Free demo — no purchase or payment.</strong><p>Try the working payment tracker and save your plan in this browser. No card is needed and no money is collected. Payments and paid access are not connected.</p><p>In this demo, Move Pass is unlocked for free so you can try the payment tracker end to end. The $9.99 price is what we are testing.</p></div>
       <button className="button primary full-width" onClick={onDemo}>Use the free demo<Icon name="arrow" size={17}/></button>
