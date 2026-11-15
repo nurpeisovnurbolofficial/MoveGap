@@ -303,20 +303,12 @@ function PlanCard({ plan, number, input, badges, focused, current, onChoose, onS
     {firstShort && firstShort.date !== plan.minBalanceDate && <p className="compare-first-short"><strong>First payment you can’t cover:</strong> {firstShort.label} ({money(firstShort.effectiveAmountCents)}) on {shortDate(firstShort.date)}.</p>}
     {unconfirmed.length > 0 && <p className="compare-confirm-note"><strong>Confirm before relying on it:</strong> {unconfirmed.join(', ')}.</p>}
 
-    <details className="compare-card-details">
-      <summary>Details</summary>
-      <Outcome plan={plan} input={input}/>
-      <CriticalDayBox plan={plan} input={input}/>
-      {rows.length > 0 && <div className="compare-option-payments">
-        <h3>Payments for this option</h3>
-        <ul>{rows.map(row => <li key={row.eventId}><span className="compare-date">{shortDate(row.date)}</span><span className="compare-option-label">{row.label}</span><strong>{signed(row.effectiveAmountCents, row.cashChangeCents)}</strong></li>)}</ul>
-      </div>}
-      <dl className="compare-facts">
-        <div><dt>Spending</dt><dd>{money(plan.costCents)}</dd></div>
-        <div><dt>Deposits</dt><dd>{money(plan.depositOutflowCents)}</dd></div>
-        <div><dt>Day 60</dt><dd>{money(plan.endingBalanceCents)}</dd></div>
-      </dl>
-    </details>
+    <Outcome plan={plan} input={input}/>
+    {rows.length > 0 && <div className="compare-option-payments">
+      <h3>Payments only this plan has</h3>
+      <ul>{rows.map(row => <li key={row.eventId}><span className="compare-date">{shortDate(row.date)}</span><span className="compare-option-label">{row.label}</span><strong>{signed(row.effectiveAmountCents, row.cashChangeCents)}</strong></li>)}</ul>
+    </div>}
+    <p className="compare-card-totals">Spending {money(plan.costCents)} · Deposit {money(plan.depositOutflowCents)} · Day 60 {money(plan.endingBalanceCents)}</p>
 
     <div className="compare-card-actions">
       <button className={`button ${isEligible(plan) ? 'primary' : 'secondary'} full-width`} aria-label={`${chooseLabel}: Plan ${number}, move ${shortDate(plan.moveDate)}`} onClick={onChoose}>{chooseLabel}<Icon name="arrow" size={17}/></button>
@@ -397,6 +389,7 @@ function PlanDetail({ ref, plan, input, plans, number, current, wide, onSelect, 
       <div><dt>Cash on day 60</dt><dd>{money(plan.endingBalanceCents)}</dd><small>after every entered payment</small></div>
     </dl>
 
+    <CriticalDayBox plan={plan} input={input}/>
     <h3 className="compare-detail-subhead">Cash after each payment</h3>
     <p className="compare-help">The line steps down for each payment and up for money received. The shaded area is below your {money(input.reserveCents)} reserve.</p>
     <p className="compare-scroll-hint">Swipe sideways to see all 60 days.</p>
@@ -404,7 +397,7 @@ function PlanDetail({ ref, plan, input, plans, number, current, wide, onSelect, 
 
     {wide ? calendar : <details className="compare-collapse"><summary>Day-by-day calendar</summary>{calendar}</details>}
 
-    <details className="compare-collapse compare-events-collapse">
+    <details className="compare-collapse compare-events-collapse" open={wide || undefined} key={wide ? 'wide' : 'narrow'}>
       <summary>All payments and paydays, in order ({plan.timeline.length})</summary>
       <p className="compare-help">Payments go out before income on the same day. Actual payments replace planned ones.</p>
       <div className="compare-events-head" aria-hidden="true"><span>Date</span><span>Payment</span><span>Amount</span><span>Cash left</span></div>

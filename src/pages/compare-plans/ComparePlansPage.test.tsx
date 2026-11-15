@@ -69,15 +69,16 @@ describe('Compare Plans decision summary', () => {
 });
 
 describe('Compare Plans explanations', () => {
-  it('explains the critical day: payments that cause it and when money comes in next', () => {
-    const t = text(render(createExample()));
+  it('explains the critical day of the plan shown in detail: payments that cause it and when money comes in next', () => {
+    const input = createExample();
+    const t = text(render(input, calculatePlans(input).plans[0].id));
     expect(t).toContain('Critical day · Dec 1');
     expect(t).toContain('You start the day with $2,100.');
     expect(t).toContain('Drops below your reserve');
     expect(t).toContain('Can’t cover this payment');
     expect(t).toContain('Next money in: Take-home pay +$2,400 on Dec 3 — 2 days later.');
     expect(t).toContain('You need $1,650 more to keep your reserve — $1,150 just to cover every payment.');
-    expect(t).toContain('Tightest day · Dec 1'); // the plan that fits still shows its lowest point
+    expect(text(render(input))).toContain('Tightest day · Dec 1'); // the plan that fits still shows its lowest point
   });
 
   it('says on each card which payments cause the low point and when money comes in', () => {
@@ -126,7 +127,7 @@ describe('Compare Plans explanations', () => {
     expect(rentDate(optionRows(plan2, input))).toBe('2026-12-01');
     expect(rentDate(optionRows(plan3, input))).toBe('2026-12-04');
     expect(optionRows(plan2, input).some(row => row.label === 'Old rent')).toBe(false); // shared payments are not repeated
-    expect(text(render(input))).toContain('Payments for this option');
+    expect(text(render(input))).toContain('Payments only this plan has');
   });
 
   it('lists combinations left out because of dates, with the reason', () => {
