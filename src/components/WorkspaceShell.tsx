@@ -4,8 +4,8 @@ import './WorkspaceShell.css';
 
 export type Page = 'overview' | 'move' | 'compare' | 'plan';
 const sections: { id: Page; label: string }[] = [
-  { id:'overview', label:'Overview' }, { id:'move', label:'Move details' },
-  { id:'compare', label:'Compare options' }, { id:'plan', label:'Payment tracker' },
+  { id:'overview', label:'Home' }, { id:'move', label:'1. Your move' },
+  { id:'compare', label:'2. Compare plans' }, { id:'plan', label:'3. Payment tracker' },
 ];
 
 export function WorkspaceShell({ page, children, onReset, onHelp, onSave, saved, dirty, hasPlan, source }: {
@@ -17,7 +17,7 @@ export function WorkspaceShell({ page, children, onReset, onHelp, onSave, saved,
     <a href="#main-content" className="skip-link" onClick={event => { event.preventDefault(); document.getElementById('main-content')?.focus({ preventScroll: true }); window.scrollTo(0, 0); }}>Skip to content</a>
     <header className="workspace-header">
       <div className="workspace-header-inner">
-        <a href="#/overview" className="brand" aria-label="MoveGap overview"><img src="/favicon.svg" alt="" width="32" height="32"/>MoveGap<span className="brand-dot">.</span></a>
+        <a href="#/overview" className="brand" aria-label="MoveGap home"><img src="/favicon.svg" alt="" width="32" height="32"/>MoveGap<span className="brand-dot">.</span></a>
         <span className="workspace-kind">{source === 'example' ? 'Example move' : 'My move'}</span>
         <div className="workspace-tools">
           <button className="icon-button" aria-label="How this works" onClick={onHelp}><Icon name="info"/></button>
@@ -33,6 +33,5 @@ export function WorkspaceShell({ page, children, onReset, onHelp, onSave, saved,
       </div>
     </header>
     <main id="main-content" tabIndex={-1} className="workspace-canvas" key={page}>{children}</main>
-    <footer className="workspace-footer"><span>MoveGap · Plan before you commit.</span><span>Drafts stay in this browser. Save online only when you choose. Calculations use your entered payments. Not financial or legal advice.</span><button className="text-button" onClick={onHelp}>How this works</button></footer>
   </div>;
 }

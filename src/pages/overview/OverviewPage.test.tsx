@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { calculatePlans } from '../../domain/engine';
 import { createExample } from '../../domain/example';
 import { OverviewPage } from './OverviewPage';
+import { createOwnMove } from '../your-move/inputHelpers';
 
 vi.mock('../../components/CashChart', () => ({ CashChart: () => <div>Cash chart</div> }));
 const noop = () => {};
@@ -24,5 +25,18 @@ describe('Overview leads with the answer', () => {
   it('gives the jury a one-minute path only on the example', () => {
     expect(render()).toContain('Fictional example · try it in 1 minute');
     expect(render(createExample(), 'own')).not.toContain('try it in 1 minute');
+  });
+  it('does not mark a blank move complete or offer tracking before a choice', () => {
+    const t = render(createOwnMove(), 'own');
+    expect(t).not.toContain('Done');
+    expect(t).toContain('Next1. Your move');
+    expect(t).toContain('Later2. Compare plans');
+    expect(t).toContain('Later3. Payment tracker');
+  });
+  it('marks comparison done only after a plan is selected', () => {
+    const input = createExample(); const result = calculatePlans(input);
+    const t = renderToStaticMarkup(<OverviewPage input={input} result={result} selected={result.plans[0]} source="own" onEdit={noop} onCompare={noop} onTrack={noop}/>).replace(/<[^>]+>/g, '');
+    expect(t).toContain('Done2. Compare plans');
+    expect(t).toContain('Next3. Payment tracker');
   });
 });

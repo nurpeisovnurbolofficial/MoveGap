@@ -61,8 +61,6 @@ input[type=checkbox] { width: 19px; height: 19px; min-height: 19px; padding: 0; 
 .field-hint,.field .field-hint { font-size: 12px; line-height: 1.6; }
 .money-input { border-radius: var(--radius-field); background: #f5f5f5; }
 .money-input>span { color: #686868; font-size: 16px; }
-.money-input input { padding-left: 34px; }
-.workspace-canvas:focus,.workspace-canvas:focus-visible { outline: none; }
 .check-field { font-size: 13px; line-height: 1.6; }
 .badge,.count-tag,.example-badge { border-radius: 999px; font: 11px/1.5 var(--font-text); letter-spacing: 0; padding: 6px 10px; }
 .badge.blue,.compare-plans-page .badge.blue { color: #353535; background: #e7e7e7; }
@@ -147,13 +145,9 @@ input[type=checkbox] { width: 19px; height: 19px; min-height: 19px; padding: 0; 
 .move-start-bar p { font-size: 13px; margin-top: 6px; }
 .input-layout { grid-template-columns: minmax(0,1fr) 320px; gap: 24px; align-items: start; }
 .input-main,.input-aside { gap: 24px; }
-.input-aside,.plan-layout>aside { display: flex; flex-direction: column; min-width: 0; }
 .cash-overview { background: var(--surface-inset); color: var(--p-ink); border: 0; border-radius: var(--radius-panel); padding: 30px; }
 .cash-overview .eyebrow,.cash-overview small,.cash-overview p,.cash-overview span { color: #555; }
 .cash-overview .cash-value { color: var(--p-ink); font-size: 50px; letter-spacing: -.06em; font-weight: 400; }
-.cash-overview .cash-amount { color: var(--p-ink); font-size: 50px; letter-spacing: -.06em; font-weight: 400; }
-.cash-rule { background: #ccc; }
-.cash-overview-top,.cash-split span { color: #555; }
 .preview-panel { background: var(--accent-fill); border-radius: var(--radius-panel); padding: 28px; border: 0; }
 .preview-panel :is(h2,h3,.chart-label) { color: #28240f; }
 .preview-panel .scope-note { color: #554b1d; }
@@ -192,7 +186,6 @@ input[type=checkbox] { width: 19px; height: 19px; min-height: 19px; padding: 0; 
 .comparison-grid { gap: 20px; grid-template-columns: repeat(3,minmax(0,1fr)); }
 .compare-plans-page .plan-card { border: 1px solid transparent; background: #e9e9e9; border-radius: var(--radius-panel); padding: 28px; box-shadow: none; }
 .compare-plans-page .plan-card.recommended,.compare-plans-page .plan-card.is-picked { border-color: #817847; }
-.compare-plans-page .plan-card.focused { border-color: #817847; box-shadow: none; }
 .compare-plans-page .plan-card h2 { font-size: 31px; font-weight: 400; letter-spacing: -.05em; }
 .plan-card-top { gap: 12px; align-items: flex-start; flex-wrap: wrap; }
 .compare-pick { background: #fff; border-color: #c7c7c7; color: #444; border-radius: 999px; }
@@ -219,7 +212,6 @@ input[type=checkbox] { width: 19px; height: 19px; min-height: 19px; padding: 0; 
 .compare-tabs button { border-radius: 999px; min-height: 44px; }
 .compare-tabs button[aria-pressed=true] { background: var(--accent-fill); color: #292613; box-shadow: none; font-weight: 500; }
 .compare-dot.tone-fits { background: #8b7c2b; }
-.compare-plans-page .plan-card.tone-fits { --tone: #c4ad32; }
 .compare-detail-stats { border: 0; border-radius: 22px; background: #ededed; overflow: hidden; }
 .compare-detail-stats>div { padding: 22px; }
 .compare-detail-stats>div+div { border-color: #d1d1d1; }
@@ -451,10 +443,9 @@ input[type=checkbox] { width: 19px; height: 19px; min-height: 19px; padding: 0; 
 }
 @media(max-width:430px) {
   .workspace-header { padding: 14px 12px; }
-  .workspace-tools { flex-wrap: nowrap; justify-content: flex-end; gap: 4px; }
-  .workspace-tools>.icon-button { width: 32px; height: 36px; padding: 6px; }
-  .workspace-tools .workspace-reset { width: 34px; }
-  .workspace-tools .button { min-height: 40px; font-size: 11px; gap: 6px; padding-inline: 9px; }
+  .workspace-tools { flex-wrap: wrap; justify-content: flex-end; max-width: 170px; }
+  .workspace-tools>.icon-button { width: 36px; height: 36px; }
+  .workspace-tools .button { min-height: 40px; font-size: 11px; }
   .workspace-header .brand { font-size: 20px; }
   .workspace-sections a { font-size: 11px; padding: 7px 5px; }
   .overview-forecast,.panel,.overview-options,.overview-tracking { padding: 21px 18px; }

@@ -18,6 +18,7 @@ export function PaymentHistory({ input, plan, onRecord }: {
 }) {
   const entries = getPaymentHistory(input).filter(row => row.event.actual)
     .sort((a, b) => b.effectiveDate.localeCompare(a.effectiveDate) || a.event.id.localeCompare(b.event.id));
+  if (entries.length === 0) return null;
   const included = new Set(plan?.timeline.map(row => row.eventId) ?? []);
   return <Panel title="Recorded payment history" aside={<span className="count-tag">{entries.length} recorded</span>}>
     <p className="panel-intro">Every recorded payment stays here, including earlier options and dates outside this forecast. Clearing a mistaken record does not refund money.</p>

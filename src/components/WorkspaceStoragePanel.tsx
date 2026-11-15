@@ -4,7 +4,7 @@ import { CloudPlanPanel } from './cloud-plan/CloudPlanPanel';
 import { Modal } from '../shared/ui';
 import './WorkspaceStoragePanel.css';
 
-export function WorkspaceStoragePanel({ workspace }: { workspace: WorkspaceController }) {
+export function WorkspaceStoragePanel({ workspace, showCloud = true }: { workspace: WorkspaceController; showCloud?: boolean }) {
   const [error, setError] = useState('');
   const [restoreKey, setRestoreKey] = useState<string | null>(null);
   const run = async (action: () => Promise<unknown> | void) => {
@@ -26,7 +26,7 @@ export function WorkspaceStoragePanel({ workspace }: { workspace: WorkspaceContr
     {(workspace.error || local.error || error) && <div className="notice danger" role="alert">{error || workspace.error || local.error}</div>}
     {local.status === 'conflict' && <section className="panel" aria-label="Draft conflict"><h2>Another tab changed this draft</h2><p>Your edits have not been overwritten. Choose a version to continue. Your current version will be kept as a recovery copy.</p><div className="storage-actions"><button className="button secondary" onClick={() => void run(() => workspace.resolveConflict('remote'))}>Use the other tab’s draft</button><button className="button secondary" onClick={() => void run(() => workspace.resolveConflict('local'))}>Keep my draft</button></div></section>}
     {(local.status === 'error' || workspace.error) && <div className="storage-actions"><button className="button secondary" onClick={() => void run(() => workspace.save())}>Retry local save</button><button className="button secondary" onClick={downloadOriginal}>Download original saved data</button></div>}
-    {cloud && !workspace.cloudChanged && <CloudPlanPanel state={cloud.panelState}
+    {showCloud && cloud && !workspace.cloudChanged && <CloudPlanPanel state={cloud.panelState}
       onSave={() => run(() => cloud.save())} onOpenLink={link => run(() => workspace.openLink(link))}
       onCopyLink={() => run(() => cloud.copyLink())} onRevealLink={() => cloud.revealLink()}
       onLoadServerVersion={() => run(() => cloud.loadServerVersion())}
