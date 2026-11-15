@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { cloudPlanPanelExamples } from '../../contracts/cloudPlan.examples';
 import type { CloudPlanPanelProps, CloudPlanPanelState } from '../../contracts/cloudPlan';
@@ -17,6 +17,15 @@ describe('CloudPlanPanel controlled states',()=>{
       const html=render(state);expect(html).toContain('read and change');expect(html).toContain('90 days');expect(html).not.toContain('NaN');
     }
     expect(render(cloudPlanPanelExamples().disabled)).toContain('Online saving is not connected yet.');
+  });
+  it('keeps Copy private link usable before the first online save, but not when saving is impossible',()=>{
+    const fixtures=cloudPlanPanelExamples();
+    const copyButton=(state:CloudPlanPanelState)=>render(state).match(/<button[^>]*>Copy private link<\/button>/)?.[0] ?? '';
+    expect(fixtures.localFailure.lastSaved).toBeFalsy();
+    expect(copyButton(fixtures.localFailure)).not.toContain('disabled');
+    expect(copyButton(fixtures.saved)).not.toContain('disabled');
+    expect(copyButton(fixtures.disabled)).toContain('disabled');
+    expect(copyButton(fixtures.incomplete)).toContain('disabled');
   });
   it('keeps local and online outcomes separate, including local storage failure',()=>{
     const fixtures=cloudPlanPanelExamples();

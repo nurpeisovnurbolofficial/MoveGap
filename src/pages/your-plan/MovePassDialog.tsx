@@ -12,13 +12,13 @@ export function MovePassDialog({ onClose, onDemo }: { onClose: () => void; onDem
     <div className="mg-pass">
       <p className="mg-pass-intro">{movePassOffer.description}</p>
       <div className="mg-pass-price"><strong>$9.99</strong><span>Proposed one-time price · no subscription</span></div>
-      <section aria-label="Free planning"><h3>Always outside the paid offer</h3><p>Calculations, draft protection, online saving, and access to your data do not require a Move Pass. Online saving is separate from this offer.</p></section>
-      <section aria-label="Available in the free demo"><h3>Working in the free demo</h3><ul>
+      <section aria-label="Free planning"><h3>Always free</h3><p>Calculations, draft protection, online saving, and access to your data do not require a Move Pass. Online saving is separate from this offer.</p></section>
+      <section aria-label="Included in Move Pass"><h3>Included in Move Pass</h3><ul>
         <li><Icon name="check" size={17}/>Track planned and actual payment dates and amounts.</li>
         <li><Icon name="check" size={17}/>See how recorded payments change your available cash.</li>
         <li><Icon name="check" size={17}/>Track your old deposit separately until it is returned.</li>
       </ul></section>
-      <div className="mg-pass-demo"><strong>Free demo — no purchase or payment.</strong><p>Try the working payment tracker and save your plan in this browser. No card is needed and no money is collected. Payments and paid access are not connected.</p><p>We are testing whether this workflow is worth a one-time price. These features are available in the demo; there is no separate paid-only feature yet.</p></div>
+      <div className="mg-pass-demo"><strong>Free demo — no purchase or payment.</strong><p>Try the working payment tracker and save your plan in this browser. No card is needed and no money is collected. Payments and paid access are not connected.</p><p>In this demo, Move Pass is unlocked for free so you can try the payment tracker end to end. The $9.99 price is what we are testing.</p></div>
       <button className="button primary full-width" onClick={onDemo}>Use the free demo<Icon name="arrow" size={17}/></button>
       <button className="mg-pass-back" onClick={onClose}>Back to my plan</button>
     </div>

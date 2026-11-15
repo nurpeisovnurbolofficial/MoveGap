@@ -80,6 +80,25 @@ describe('Compare Plans explanations', () => {
     expect(t).toContain('Tightest day · Dec 1'); // the plan that fits still shows its lowest point
   });
 
+  it('says on each card which payments cause the low point and when money comes in', () => {
+    const t = text(render(createExample()));
+    expect(t).toContain('Dec 1: Old rent $1,700 + New rent $1,550 due. Take-home pay +$2,400 arrives Dec 3 — 2 days later.');
+    expect(t).toContain('Tightest day Dec 1: Old rent $1,700 leaves $1,100.');
+    expect(t).toContain('Stays above your $500 reserve for all 60 days.');
+  });
+
+  it('keeps the page to one answer, the cards, the detail and one test-and-fix section', () => {
+    const html = render(createExample());
+    const t = text(html);
+    expect(t).not.toContain('What changes between plans');
+    expect(t).toContain('What if something changes?');
+    expect(t).toContain('Find payment changes');
+    expect(t).toContain('What if your paycheck is late? Test it');
+    expect(html).not.toMatch(/<button[^>]*disabled[^>]*>(Choose|Use real dates)/);
+    expect(html.indexOf('id="compare-summary-title"')).toBeLessThan(html.indexOf('id="compare-card-1"'));
+    expect(html.indexOf('id="compare-card-1"')).toBeLessThan(html.indexOf('id="compare-tools"'));
+  });
+
   it('reads the critical day from the engine timeline without recalculating it', () => {
     const input = createExample();
     const plan = calculatePlans(input).plans[0];
@@ -128,7 +147,7 @@ describe('Compare Plans explanations', () => {
     const first = calculatePlans(input).plans[0].id;
     const html = render(input, first);
     expect(count(html, '>Your current plan<')).toBe(1);
-    expect(count(html, 'Continue with this plan')).toBe(1);
+    expect(count(html, 'Continue with this plan<')).toBe(1);
     expect(html).toContain('id="compare-detail-title">Plan 1');
   });
 
