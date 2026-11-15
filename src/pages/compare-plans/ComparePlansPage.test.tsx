@@ -93,10 +93,18 @@ describe('Compare Plans explanations', () => {
     expect(t).not.toContain('What changes between plans');
     expect(t).toContain('What if something changes?');
     expect(t).toContain('Find payment changes');
-    expect(t).toContain('What if your paycheck is late? Test it');
+    expect(t).toContain('What if your Take-home pay (Dec 3) arrives 2 days late?');
+    expect(t).toContain('Dec 1: Tightest day in this plan');
+    expect(t).toContain('Home ready Nov 25');
+    expect(html.indexOf('compare-quick-test')).toBeLessThan(html.indexOf('id="compare-card-1"'));
     expect(html).not.toMatch(/<button[^>]*disabled[^>]*>(Choose|Use real dates)/);
     expect(html.indexOf('id="compare-summary-title"')).toBeLessThan(html.indexOf('id="compare-card-1"'));
     expect(html.indexOf('id="compare-card-1"')).toBeLessThan(html.indexOf('id="compare-tools"'));
+  });
+
+  it('marks the day cash runs out for the closest plan when nothing fits', () => {
+    const input = createExample(); input.openingCashCents = 100000;
+    expect(text(render(input))).toContain('Plan 3 runs out of cash');
   });
 
   it('reads the critical day from the engine timeline without recalculating it', () => {

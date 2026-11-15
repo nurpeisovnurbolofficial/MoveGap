@@ -38,6 +38,15 @@ function useWideScreen() {
   return wide;
 }
 
+/** Big calendar-style date: the one day that decides the plan. */
+function DayTile({ date, label, tone = 'ok' }: { date: string; label: string; tone?: 'ok' | 'bad' }) {
+  const [month, day] = shortDate(date).split(' ');
+  return <div className="compare-day">
+    <div className={`compare-day-tile ${tone}`} aria-hidden="true"><span>{month}</span><strong>{day}</strong></div>
+    <small><span className="visually-hidden">{shortDate(date)}: </span>{label}</small>
+  </div>;
+}
+
 type Props = {
   input: MoveInput;
   result: ComparisonResult;
@@ -61,7 +70,6 @@ export function ComparePlansPage({ input: originalInput, result: originalResult,
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const detailRef = useRef<HTMLElement>(null);
   const answerRef = useRef<HTMLDivElement>(null);
-  const toolsRef = useRef<HTMLElement>(null);
   const wide = useWideScreen();
   const summary = highlights(result);
   const focused = result.plans.find(p => p.id === focusedId)
@@ -91,10 +99,6 @@ export function ComparePlansPage({ input: originalInput, result: originalResult,
     card?.focus({ preventScroll: true });
     scrollTo(card);
   }
-  function showTools() {
-    toolsRef.current?.focus({ preventScroll: true });
-    scrollTo(toolsRef.current);
-  }
 
   const heading = <div className="page-heading"><h1>Compare your moving options.</h1><p>See which plan works with the money you have. Your reserve{Number.isFinite(originalInput.reserveCents) ? ` (${money(originalInput.reserveCents)})` : ''} is cash you want to keep untouched the whole time.</p></div>;
 
@@ -120,8 +124,11 @@ export function ComparePlansPage({ input: originalInput, result: originalResult,
         <button className="button secondary" onClick={() => setScenarioOn(false)}><Icon name="back" size={16}/>Back to real dates</button>
       </div>}
       <DecisionSummary result={result} input={input} summary={summary} number={number} currentPlanId={currentPlanId} onChoose={choosePlan} onBack={onBack} onShowCard={showCard}
-        previewOnly={scenarioActive} onTest={incomes.length && !scenarioActive ? showTools : undefined}/>
+        previewOnly={scenarioActive}/>
     </div>
+
+    {selectedIncome && <QuickDelayTest income={selectedIncome.label} date={selectedIncome.date} days={delayDays} active={scenarioActive}
+      onActive={setScenarioOn} original={originalResult} current={result} number={number}/>}
 
     <div className="comparison-grid compare-cards">{result.plans.map(plan => <PlanCard key={plan.id} plan={plan} number={number(plan.id)} input={input}
       badges={summary.bestFitId === plan.id ? ['Best fit'] : summary.items.filter(item => item.winnerIds.includes(plan.id)).map(item => item.winnerIds.length > 1 ? `${item.label} · tie` : item.label)}
@@ -135,7 +142,7 @@ export function ComparePlansPage({ input: originalInput, result: originalResult,
     <PlanDetail ref={detailRef} plan={focused} input={input} plans={result.plans} number={number} current={currentPlanId === focused.id} wide={wide}
       onSelect={setFocusedId} onChoose={() => choosePlan(focused.id)} previewOnly={scenarioActive} onRestore={() => setScenarioOn(false)}/>
 
-    <section id="compare-tools" ref={toolsRef} tabIndex={-1} className="compare-tools" aria-labelledby="compare-tools-title">
+    <section id="compare-tools" className="compare-tools" aria-labelledby="compare-tools-title">
       <div className="compare-tools-head">
         <span className="eyebrow">TEST AND FIX</span>
         <h2 id="compare-tools-title">What if something changes?</h2>
@@ -153,6 +160,24 @@ export function ComparePlansPage({ input: originalInput, result: originalResult,
   </div>;
 }
 
+/** The demo's key question, one tick away from the comparison. Full controls stay in “What if something changes?”. */
+function QuickDelayTest({ income, date, days, active, onActive, original, current, number }: {
+  income: string; date: string; days: number; active: boolean; onActive: (active: boolean) => void;
+  original: ComparisonResult; current: ComparisonResult; number: (id: string) => number;
+}) {
+  const originalSummary = highlights(original);
+  const leadId = originalSummary.bestFitId ?? original.largestBufferPlanId;
+  const lead = current.plans.find(plan => plan.id === leadId);
+  const before = original.plans.filter(isEligible).length;
+  const after = current.plans.filter(isEligible).length;
+  return <div className={`compare-quick-test${active ? ' is-active' : ''}`}>
+    <label className="compare-quick-toggle"><input type="checkbox" checked={active} onChange={event => onActive(event.target.checked)}/>
+      <span><strong>What if your {income} ({shortDate(date)}) arrives {days} {days === 1 ? 'day' : 'days'} late?</strong><small>Recalculates every plan. Untick to go back.</small></span></label>
+    {active && <p role="status">{lead ? <>Plan {number(lead.id)} {lead.meetsReserve ? <>still keeps your reserve (lowest {money(lead.minBalanceCents)} on {shortDate(lead.minBalanceDate)}).</> : <>would drop to <strong>{money(lead.minBalanceCents)}</strong> on {shortDate(lead.minBalanceDate)} — it works only if payday is on time.</>} </> : null}
+      Plans that keep your reserve: {before} → {after}.</p>}
+  </div>;
+}
+
 function RejectedList({ input, result }: { input: MoveInput; result: ComparisonResult }) {
   const count = result.rejected.length;
   return <div className="compare-rejected">
@@ -161,23 +186,22 @@ function RejectedList({ input, result }: { input: MoveInput; result: ComparisonR
   </div>;
 }
 
-function DecisionSummary({ result, input, summary, number, currentPlanId, onChoose, onBack, onShowCard, previewOnly = false, onTest }: {
+function DecisionSummary({ result, input, summary, number, currentPlanId, onChoose, onBack, onShowCard, previewOnly = false }: {
   result: ComparisonResult; input: MoveInput; summary: ReturnType<typeof highlights>; number: (id: string) => number;
   currentPlanId: string | null; onChoose: (id: string) => void; onBack: () => void; onShowCard: (id: string) => void;
-  previewOnly?: boolean; onTest?: () => void;
+  previewOnly?: boolean;
 }) {
   const reserve = money(input.reserveCents);
   const { eligible, items, bestFitId } = summary;
   const conditional = result.plans.filter(p => p.needsConfirmation);
   const conditionalNote = conditional.length > 0 && <p className="compare-summary-note"><Icon name="info" size={15}/>{conditional.length} {conditional.length === 1 ? 'plan needs' : 'plans need'} confirmation before you rely on the terms.</p>;
   const editButton = (primary: boolean) => <button className={`button ${primary ? 'primary' : 'secondary'}`} onClick={onBack}><Icon name="back" size={16}/>Edit your move</button>;
-  const testLink = onTest && <button className="text-button compare-test-link" onClick={onTest}>What if your paycheck is late? Test it<Icon name="arrow" size={15}/></button>;
 
   if (!eligible.length) {
     const fitIfConfirmed = conditional.filter(p => p.meetsReserve).length;
     const closest = closestPlan(result);
     return <section className="compare-summary warning" aria-labelledby="compare-summary-title">
-      <span className="insight-icon"><Icon name="info"/></span>
+      <DayTile date={closest.firstBelowZeroDate ?? closest.minBalanceDate} label={closest.firstBelowZeroDate ? `Plan ${number(closest.id)} runs out of cash` : `Lowest day, Plan ${number(closest.id)}`} tone="bad"/>
       <div className="compare-summary-body">
         <span className="eyebrow">NO PLAN FITS YET</span>
         <h2 id="compare-summary-title">No confirmed plan keeps your {reserve} reserve.</h2>
@@ -186,7 +210,6 @@ function DecisionSummary({ result, input, summary, number, currentPlanId, onChoo
           : <p>Closest: <strong>Plan {number(closest.id)} · Move {shortDate(closest.moveDate)}</strong> still needs <strong>{money(closest.gapToReserveCents)} more</strong> to keep your reserve.</p>}
         <p className="compare-summary-muted">You can change your starting cash, your reserve, or payment dates you have actually agreed on. A different moving day doesn’t move the landlord’s deadlines.</p>
         {conditionalNote}
-        {testLink}
       </div>
       <div className="compare-summary-actions">{editButton(true)}</div>
     </section>;
@@ -199,7 +222,7 @@ function DecisionSummary({ result, input, summary, number, currentPlanId, onChoo
       : eligible.length === 1 ? `The only one of your ${result.plans.length} plans that is confirmed and keeps your ${reserve} reserve.`
       : `Earliest move, lowest cost and most cash left of the ${eligible.length} confirmed plans that keep your ${reserve} reserve.`;
     return <section className="compare-summary good" aria-labelledby="compare-summary-title">
-      <span className="insight-icon"><Icon name="check"/></span>
+      <DayTile date={plan.minBalanceDate} label="Tightest day in this plan"/>
       <div className="compare-summary-body">
         <span className="eyebrow">BEST FIT</span>
         <h2 id="compare-summary-title">Plan {number(plan.id)} · Move {shortDate(plan.moveDate)}</h2>
@@ -211,7 +234,6 @@ function DecisionSummary({ result, input, summary, number, currentPlanId, onChoo
           <div><dt>Cash on day 60</dt><dd>{money(plan.endingBalanceCents)}</dd></div>
         </dl>
         {conditionalNote}
-        {testLink}
       </div>
       <div className="compare-summary-actions">
         <button className="button primary" onClick={() => onChoose(plan.id)}>{previewOnly ? `Use real dates · choose Plan ${number(plan.id)}` : <>{plan.id === currentPlanId ? 'Continue with' : 'Choose'} Plan {number(plan.id)}</>}<Icon name="arrow" size={16}/></button>
@@ -237,7 +259,6 @@ function DecisionSummary({ result, input, summary, number, currentPlanId, onChoo
         </button>;
       })}</div>
       {conditionalNote}
-      {testLink}
     </div>
     <div className="compare-summary-actions">{editButton(false)}</div>
   </section>;
@@ -265,6 +286,10 @@ function PlanCard({ plan, number, input, badges, focused, current, onChoose, onS
     </div>
     <h2 id={headingId}>Move {shortDate(plan.moveDate)}</h2>
     <p className="plan-description">{housing?.label} · {moving?.label}</p>
+    <ul className="compare-chips" aria-label="Key dates">
+      <li><Icon name="home" size={14}/>Home ready <strong>{shortDate(housing?.availableFrom ?? '')}</strong></li>
+      <li><Icon name="truck" size={14}/>Moving day <strong>{shortDate(plan.moveDate)}</strong></li>
+    </ul>
     {badges.length > 0 && <div className="compare-highlights">{badges.map(badge => <span key={badge} className={`badge ${badge === 'Best fit' ? 'green' : 'blue'}`}>{badge === 'Best fit' && <Icon name="check" size={13}/>}{badge}</span>)}</div>}
 
     <div className="compare-metric">
@@ -280,10 +305,6 @@ function PlanCard({ plan, number, input, badges, focused, current, onChoose, onS
 
     <details className="compare-card-details">
       <summary>Details</summary>
-      <ul className="compare-chips" aria-label="Key dates">
-        <li><Icon name="home" size={14}/>Home from <strong>{shortDate(housing?.availableFrom ?? '')}</strong></li>
-        <li><Icon name="truck" size={14}/>Moving day <strong>{shortDate(plan.moveDate)}</strong></li>
-      </ul>
       <Outcome plan={plan} input={input}/>
       <CriticalDayBox plan={plan} input={input}/>
       {rows.length > 0 && <div className="compare-option-payments">

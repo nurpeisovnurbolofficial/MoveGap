@@ -1,4 +1,4 @@
-﻿/* Compare plans — scoped to this page. Shared tokens come from src/styles.css. */
+/* Compare plans — scoped to this page. Shared tokens come from src/styles.css. */
 .compare-plans-page {
   --cp-muted:#505966;
   --cp-green:#24694e; --cp-green-bg:#f1f8f3; --cp-green-line:#cfe2d6;
@@ -224,7 +224,6 @@
 .compare-whatif-banner { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:14px 16px; border:2px solid #89711e; border-radius:10px; background:#fffbee; font-size:14px; line-height:1.55; }
 .compare-whatif-banner > svg { flex-shrink:0; color:#6f5a10; }
 .compare-whatif-banner p { flex:1 1 320px; min-width:0; }
-.compare-test-link { margin-top:10px; padding:0; font-size:13px; font-weight:600; color:var(--p-ink); text-decoration:underline; text-underline-offset:4px; }
 .compare-plans-page .compare-cards { align-items:stretch; }
 .compare-plans-page .compare-card { display:flex; flex-direction:column; }
 .compare-card .compare-metric { padding:16px 0 6px; }
@@ -256,4 +255,27 @@
   .compare-whatif-banner .button { width:100%; }
   .compare-tools-head h2 { font-size:20px; }
   .adjustment-quick .button { width:100%; }
+}
+
+/* Day tile in the answer block */
+.compare-day { display:flex; flex-direction:column; align-items:center; gap:6px; width:84px; }
+.compare-day-tile { width:76px; height:76px; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#ffd84d; color:#141414; line-height:1; }
+.compare-day-tile.bad { background:#fbe1de; color:#8f2c2b; }
+.compare-day-tile span { font-size:14px; font-weight:600; }
+.compare-day-tile strong { font-size:34px; font-weight:700; margin-top:4px; }
+.compare-day small { font-size:11px; line-height:1.35; text-align:center; color:var(--cp-muted); }
+/* One-tick late-paycheck test above the cards */
+.compare-quick-test { margin:22px 0 0; padding:14px 16px; border:1px solid var(--line); border-radius:10px; background:#fff; }
+.compare-quick-test.is-active { border:2px solid #89711e; background:#fffbee; }
+.compare-quick-toggle { display:flex; align-items:flex-start; gap:12px; cursor:pointer; min-height:44px; }
+.compare-quick-toggle input { width:22px; height:22px; margin-top:1px; flex-shrink:0; }
+.compare-quick-toggle strong { display:block; font-size:15px; font-weight:600; }
+.compare-quick-toggle small { display:block; font-size:12px; color:var(--cp-muted); margin-top:3px; }
+.compare-quick-test p { margin:10px 0 0 34px; font-size:14px; line-height:1.55; }
+@media (max-width:600px) {
+  .compare-day { flex-direction:row; width:auto; gap:10px; }
+  .compare-day-tile { width:60px; height:60px; border-radius:12px; }
+  .compare-day-tile strong { font-size:26px; }
+  .compare-day small { text-align:left; font-size:12px; }
+  .compare-quick-test p { margin-left:0; }
 }
